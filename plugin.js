@@ -8,7 +8,7 @@
 
   const PLUGIN_ID = 'nini-ins-roche';
   const APP_ID = 'nini-ins-home';
-  const VERSION = '5.1.4';
+  const VERSION = 'c.5.1.5';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
