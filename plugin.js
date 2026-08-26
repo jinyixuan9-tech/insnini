@@ -1,6 +1,6 @@
 // ============================================================
-// 插件：Nini INS
-// 版本：5.1.9
+// 插件：Ins
+// 版本：1.02（首页尺寸预览）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -8,7 +8,7 @@
 
   const PLUGIN_ID = 'nini-ins-roche';
   const APP_ID = 'nini-ins-home';
-  const VERSION = '5.1.11';
+  const VERSION = '1.02';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -11769,6 +11769,47 @@ startINSAutoPublishTimer();
 .nini-ins-root .act,
 .nini-ins-root .story-wrap{
   touch-action:manipulation;
+}
+
+/* Ins v1.02: compact Home Story rail.
+   Keep the visible avatar lighter while preserving a comfortable tap target. */
+.nini-ins-root .stories{
+  gap:12px;
+  padding:9px 12px 10px;
+  min-height:88px;
+  align-items:flex-start;
+}
+.nini-ins-root .story{
+  width:62px;
+  flex:0 0 62px;
+}
+.nini-ins-root .story-wrap{
+  width:56px;
+  height:56px;
+}
+.nini-ins-root .story-wrap::after{
+  content:"";
+  position:absolute;
+  inset:-4px;
+  border-radius:50%;
+}
+.nini-ins-root .story-ring{
+  padding:2.5px;
+}
+.nini-ins-root .story-inner{
+  border-width:2px;
+  font-size:10px;
+}
+.nini-ins-root .story-add{
+  right:-3px;
+  bottom:-3px;
+  width:24px;
+  height:24px;
+}
+.nini-ins-root .story-name{
+  margin-top:4px;
+  font-size:10px;
+  line-height:14px;
 }
 `;
 
