@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.04（首页动态、评论批次与收藏区）
+// 版本：1.04.1（基于 1.03 回退重修：首页动态交互与评论批次）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -8,7 +8,7 @@
 
   const PLUGIN_ID = 'nini-ins-roche';
   const APP_ID = 'nini-ins-home';
-  const VERSION = '1.04';
+  const VERSION = '1.04.1';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -228,6 +228,22 @@ function shouldOfferTranslation(original='',translation=''){
   return !!String(translation||'').trim() && !isLikelyChineseText(original);
 }
 
+function normalizeFeedPostTags(raw){
+  const source=Array.isArray(raw)?raw.join(' '):String(raw||'');
+  return [...new Set(source.split(/[\s,，]+/).map(tag=>tag.trim()).filter(Boolean).map(tag=>tag.startsWith('#')?tag:'#'+tag).filter(tag=>/^#[^#\s]+$/.test(tag)))];
+}
+function renderFeedPostTags(post){
+  const tags=normalizeFeedPostTags(post?.tags||[]);
+  return tags.length?' '+tags.map(tag=>`<span class="tag">${escapeDMCardHTML(tag)}</span>`).join(' '):'';
+}
+function splitFeedEditorCaptionAndTags(raw=''){
+  const text=String(raw||'').trim();
+  const tags=normalizeFeedPostTags((text.match(/(^|\s)#[^\s#]+/g)||[]).map(x=>String(x).trim()));
+  const clean=stripGeneratedCaptionHashtags(text);
+  const parts=splitGeneratedCaptionText(clean);
+  return {parts,tags};
+}
+
 function renderFeed(){
   let html='';
   posts.forEach((p,i)=>{
@@ -245,7 +261,7 @@ function renderFeed(){
           </div>
           <div class="post-right">
             ${showFollow?`<button class="follow-btn feed-follow-locked" type="button" disabled aria-disabled="true">${p.type==='stranger'?'关注':'已关注'}</button>`:''}
-            <button class="menu-btn" type="button" onclick="openPostMenu(${i})"><svg viewBox="0 0 24 24"><path d="M5 8h14M5 16h14"/></svg></button>
+            <button class="menu-btn" type="button" data-feed-menu-index="${i}"><svg viewBox="0 0 24 24"><path d="M5 8h14M5 16h14"/></svg></button>
           </div>`;
           })()}
         </div>
@@ -260,13 +276,13 @@ function renderFeed(){
               ? `<div class="post-media-description-back">
                   <span>${escapeDMCardHTML(current.desc || p.mediaDescription || p.mediaText || '暂无图片描述')}</span>
                 </div>`
-              : `<img draggable="false" src="${escapeDMCardHTML(current.url)}" alt="${escapeDMCardHTML(p.author)} post">`}
+              : `<img draggable="false" src="${escapeDMCardHTML(current.url||ensurePostFallbackMedia(p,i))}" alt="${escapeDMCardHTML(p.author)} post">`}
             ${total>1?`<div class="post-media-counter">${currentNo}/${total}</div>`:''}
           </div>`;
         })()}
 
         <div class="actions">
-          <div class="act" onclick="toggleLike(${i})">
+          <div class="act" data-feed-like-index="${i}">
             <img class="iconimg" data-role="like" src="${p.liked?ICONS.heart1:ICONS.heart0}">
             <span class="num">${fmtSocial(p.likes+(p.liked?1:0))}</span>
           </div>
@@ -274,7 +290,7 @@ function renderFeed(){
             <img class="iconimg" src="${ICONS.reply}">
             <span class="num">${fmtSocial(p.comments)}</span>
           </div>
-          <div class="act" onclick="toggleRepost(${i})">
+          <div class="act" data-feed-repost-index="${i}">
             <img class="iconimg" data-role="repost" src="${p.reposted?ICONS.repost1:ICONS.repost0}">
             <span class="num">${fmtSocial(p.reposts+(p.reposted?1:0))}</span>
           </div>
@@ -289,23 +305,38 @@ function renderFeed(){
           const originalText=[p.captionShort||'',p.captionLong||''].join(' ');
           const canTranslate=shouldOfferTranslation(originalText,p.translation);
           const hasMore=!!String(p.captionLong||'').trim();
+          const tagHtml=renderFeedPostTags(p);
           return `<div class="caption">
           <strong>${escapeDMCardHTML(identity.name)}</strong>
           <span>${p.captionShort}</span>
           ${p.expanded?`<span>${p.captionLong}</span>`:''}
-          ${hasMore?`<span class="more" onclick="toggleCaption(${i})">${p.expanded?'收起':'展开'}</span>`:''}
+          ${tagHtml}
+          ${hasMore?`<span class="more" data-feed-caption-index="${i}">${p.expanded?'收起':'展开'}</span>`:''}
         </div>
-        ${canTranslate?`<div class="translation-toggle" onclick="toggleTranslation(${i})">${p.translated?'收起翻译':'查看翻译'}</div>
-        <div class="translation ${p.translated?'show':''}">${escapeDMCardHTML(p.translation||'')}</div>`:''}
-        `;
+        ${canTranslate?`<div class="translation-toggle" data-feed-translation-index="${i}">${p.translated?'收起翻译':'查看翻译'}</div>
+        <div class="translation ${p.translated?'show':''}">${escapeDMCardHTML(p.translation||'')}</div>`:''}`;
         })()}
       </article>`;
   });
   const feedEl=document.getElementById('feed');
   feedEl.innerHTML=html;
   hydrateIdentityAvatars(feedEl);
-  scheduleINSFeedPersistenceV104?.();
 }
+
+
+/* v1.04.1: delegated Feed controls. Direct-mount/mobile must not depend on inline onclick. */
+document.getElementById('feed')?.addEventListener('click',event=>{
+  const menu=event.target.closest('[data-feed-menu-index]');
+  if(menu){event.preventDefault();event.stopPropagation();const i=Number(menu.dataset.feedMenuIndex);if(Number.isInteger(i))openPostMenu(i);return;}
+  const like=event.target.closest('[data-feed-like-index]');
+  if(like){event.preventDefault();event.stopPropagation();const i=Number(like.dataset.feedLikeIndex);if(Number.isInteger(i))toggleLike(i);return;}
+  const repost=event.target.closest('[data-feed-repost-index]');
+  if(repost){event.preventDefault();event.stopPropagation();const i=Number(repost.dataset.feedRepostIndex);if(Number.isInteger(i))toggleRepost(i);return;}
+  const more=event.target.closest('[data-feed-caption-index]');
+  if(more){event.preventDefault();event.stopPropagation();const i=Number(more.dataset.feedCaptionIndex);if(Number.isInteger(i))toggleCaption(i);return;}
+  const translation=event.target.closest('[data-feed-translation-index]');
+  if(translation){event.preventDefault();event.stopPropagation();const i=Number(translation.dataset.feedTranslationIndex);if(Number.isInteger(i))toggleTranslation(i);}
+});
 
 let postMediaPointerState=null;
 
@@ -1411,7 +1442,8 @@ async function publishUserFeedPost(){
     return;
   }
   const caption=document.getElementById('cpCaption').value.trim();
-  const tags=document.getElementById('cpTag').value.trim();
+  const tagsRaw=document.getElementById('cpTag').value.trim();
+  const tags=normalizeFeedPostTags(tagsRaw);
   const location=document.getElementById('cpLocation').value.trim();
   const taggedIds=[...new Set(createPostState.taggedChars.map(normalizeSocialActorId).filter(isFormalSocialActor))];
   const mediaItems=createPostState.media.slice(0,4).map((item,index)=>{
@@ -1431,7 +1463,8 @@ async function publishUserFeedPost(){
     shares:Math.max(0,Math.round(userProfileState.followers*(0.008+Math.random()*0.03))),
     liked:false,reposted:false,expanded:false,translated:false,
     captionShort:caption?` ${escapeDMCardHTML(caption)}`:'',
-    captionLong:tags?` <span class="tag">${escapeDMCardHTML(tags)}</span>`:'',
+    captionLong:'',
+    tags,
     translation:'',taggedChars:taggedIds,
     allowStrangerComments:document.getElementById('cpStrangerSwitch')?.classList.contains('on')!==false
   };
@@ -7107,85 +7140,12 @@ document.getElementById('strangerMessagesRow')?.addEventListener('click', ()=>{
 });
 
 
-/* ===== v1.04 comments: 5-per-batch + reroll + append + user posting ===== */
+/* ===== v1.03 comments: smooth sheet + translation + user posting ===== */
 let activeCommentsPostId = 'p1';
 let commentReplyTo = null;
 
 const commentsByPost = {p2:[{author:'public_88',text:'love this set',translation:'喜欢这一组。',generated:true}]};
 const feedCommentVisibleCountByPost=Object.create(null);
-const INS_FEED_STATE_STORAGE_KEY='nini-ins-feed-state-v104';
-let insFeedPersistTimer=null;
-
-function restoreINSFeedStateV104(){
-  try{
-    const saved=JSON.parse(localStorage.getItem(INS_FEED_STATE_STORAGE_KEY)||'null');
-    if(!saved || saved.version!==1 || !Array.isArray(saved.posts))return false;
-    const restoredPosts=saved.posts.filter(post=>post&&post.id&&post.author).slice(0,80);
-    if(restoredPosts.length || saved.posts.length===0){
-      posts.splice(0,posts.length,...restoredPosts);
-      posts.forEach((post,index)=>{
-        post.liked=!!post.liked;
-        post.reposted=!!post.reposted;
-        post.expanded=!!post.expanded;
-        post.translated=!!post.translated;
-        post.mediaFlipped=false;
-        if(!Number.isInteger(post.mediaCarouselIndex))post.mediaCarouselIndex=0;
-        ensurePostFallbackDeck(post,index);
-      });
-    }
-    if(saved.comments && typeof saved.comments==='object'){
-      Object.keys(commentsByPost).forEach(key=>delete commentsByPost[key]);
-      Object.entries(saved.comments).slice(0,100).forEach(([key,rows])=>{
-        commentsByPost[key]=Array.isArray(rows)?rows.slice(0,100):[];
-      });
-    }
-    if(saved.commentVisibleCounts && typeof saved.commentVisibleCounts==='object'){
-      Object.keys(feedCommentVisibleCountByPost).forEach(key=>delete feedCommentVisibleCountByPost[key]);
-      Object.entries(saved.commentVisibleCounts).slice(0,100).forEach(([key,count])=>{
-        const safeCount=Math.max(0,Math.min(100,Number(count)||0));
-        if(safeCount)feedCommentVisibleCountByPost[key]=safeCount;
-      });
-    }
-    if(saved.publicIdentities && typeof saved.publicIdentities==='object'){
-      Object.keys(publicIdentityRegistry).forEach(key=>delete publicIdentityRegistry[key]);
-      Object.assign(publicIdentityRegistry,saved.publicIdentities);
-    }
-    return true;
-  }catch(error){
-    console.warn('[Ins] 首页动态恢复失败',error);
-    return false;
-  }
-}
-
-function persistINSFeedStateV104(){
-  try{
-    const postIds=new Set(posts.map(post=>String(post.id||'')));
-    const comments={};
-    Object.entries(commentsByPost).forEach(([key,rows])=>{
-      if(postIds.has(String(key)))comments[key]=Array.isArray(rows)?rows.slice(0,100):[];
-    });
-    localStorage.setItem(INS_FEED_STATE_STORAGE_KEY,JSON.stringify({
-      version:1,
-      savedAt:Date.now(),
-      posts:posts.slice(0,80),
-      comments,
-      commentVisibleCounts:feedCommentVisibleCountByPost,
-      publicIdentities:publicIdentityRegistry
-    }));
-  }catch(error){
-    console.warn('[Ins] 首页动态保存失败',error);
-  }
-}
-
-function scheduleINSFeedPersistenceV104(){
-  clearTimeout(insFeedPersistTimer);
-  insFeedPersistTimer=setTimeout(()=>{
-    insFeedPersistTimer=null;
-    persistINSFeedStateV104();
-  },90);
-}
-
-restoreINSFeedStateV104();
 
 function escapeCommentHTML(value){
   return String(value ?? '')
@@ -7404,7 +7364,6 @@ document.getElementById('commentRefreshBtn')?.addEventListener('click', async ()
     await generateNextPublicCommentBatch('feed',postId,5);
     feedCommentVisibleCountByPost[postId]=(commentsByPost[postId]||[]).length;
     renderComments(postId);
-    scheduleINSFeedPersistenceV104();
   }catch(error){
     commentsByPost[postId]=previous;
     feedCommentVisibleCountByPost[postId]=Math.min(5,previous.length);
@@ -7425,7 +7384,6 @@ document.getElementById('commentLoadMoreBtn')?.addEventListener('click',async ()
     await generateNextPublicCommentBatch('feed',postId,5);
     feedCommentVisibleCountByPost[postId]=(commentsByPost[postId]||[]).length;
     renderComments(postId);
-    scheduleINSFeedPersistenceV104();
   }catch(error){
     alert('加载更多 IG 评论失败：'+(error?.message||error));
   }finally{
@@ -7608,7 +7566,7 @@ function recordGeneratedReelPublish(actorId,item,{knownByUser=true}={}){
 
 function normalizeGeneratedMetric(value,min,max){
   const n=Number(value);
-  if(Number.isFinite(n) && n>0)return Math.round(n);
+  if(Number.isFinite(n) && n>0)return Math.max(Number(min)||0,Math.round(n));
   return min + Math.floor(Math.random()*(Math.max(min,max)-min+1));
 }
 
@@ -7679,10 +7637,15 @@ function normalizeGeneratedMediaItems(row={}){
       ? row.mediaDescriptions.map(item=>typeof item==='string'?{mediaDescription:item}:item)
       : [];
 
+  const trustedInlineUrl=value=>{
+    const url=String(value||'').trim();
+    return /^(data:image\/|blob:)/i.test(url)?url:'';
+  };
+
   const items=raw.map((item,idx)=>{
       if(typeof item==='string')return {id:`generated_media_${idx}`,url:'',desc:String(item).trim(),source:'description'};
       const desc=String(item?.mediaDescription??item?.description??item?.desc??'').trim();
-      const url=String(item?.mediaUrl??item?.url??'').trim();
+      const url=trustedInlineUrl(item?.mediaUrl??item?.url??'');
       if(!desc && !url)return null;
       return {id:String(item?.id||`generated_media_${idx}`),url,desc:desc||'生活随手记录',source:url?'generated':'description',albumCategory:String(item?.albumCategory||item?.category||''),albumTags:Array.isArray(item?.albumTags)?item.albumTags:[],albumEraId:String(item?.albumEraId||item?.eraId||'')};
     })
@@ -7691,7 +7654,7 @@ function normalizeGeneratedMediaItems(row={}){
 
   if(items.length)return items;
   const fallbackDesc=String(row?.mediaDescription||row?.content?.mediaDescription||row?.content||'生活随手记录').trim() || '生活随手记录';
-  return [{id:'generated_media_0',url:String(row?.mediaUrl||'').trim(),desc:fallbackDesc,source:String(row?.mediaUrl||'').trim()?'generated':'description'}];
+  return [{id:'generated_media_0',url:trustedInlineUrl(row?.mediaUrl||''),desc:fallbackDesc,source:'description'}];
 }
 
 function makeGeneratedFeedPost(row,actorId,type,index=0){
@@ -7701,7 +7664,7 @@ function makeGeneratedFeedPost(row,actorId,type,index=0){
   const inlineTags=normalizeGeneratedEnglishTags((String(bilingual.textOriginal||'').match(/(^|\s)#[^\s#]+/g)||[]).map(tag=>String(tag||'').trim()));
   const tags=[...new Set([...explicitTags,...inlineTags])];
   if(!tags.length)tags.push('#daily');
-  const cleanCaption=tags.length?stripGeneratedCaptionHashtags(bilingual.textOriginal):bilingual.textOriginal;
+  const cleanCaption=stripGeneratedCaptionHashtags(bilingual.textOriginal);
   const parts=splitGeneratedCaptionText(cleanCaption);
   const initialComments=Array.isArray(row?.initialComments)?row.initialComments:(Array.isArray(row?.comments)?row.comments:[]);
   const id=`feed_ai_${Date.now()}_${index}_${Math.random().toString(36).slice(2,5)}`;
@@ -7726,7 +7689,8 @@ function makeGeneratedFeedPost(row,actorId,type,index=0){
     shares:normalizeGeneratedMetric(metrics.shares??row?.shares,1,78),
     liked:false,reposted:false,expanded:false,translated:false,
     captionShort:parts.short?` ${escapeDMCardHTML(parts.short)}`:'',
-    captionLong:[parts.long?` ${escapeDMCardHTML(parts.long)}`:'', tags.length?' '+tags.map(tag=>`<span class="tag">${escapeDMCardHTML(String(tag).startsWith('#')?tag:'#'+tag)}</span>`).join(' '):''].join(''),
+    captionLong:parts.long?` ${escapeDMCardHTML(parts.long)}`:'',
+    tags,
     translation:bilingual.textTranslation||'',sourceLanguage:bilingual.sourceLanguage||'',location:locationLabel,generated:true
   };
   ensurePostFallbackDeck(post,posts.length+index);
@@ -8270,7 +8234,7 @@ function renderPostEditAssetOptions(post){
 function openPostEditor(){
   const post=posts[activePostMenuIndex];
   if(!post)return;
-  postEditCaption.value=[post.captionShort||'',post.captionLong||''].join('').replace(/<[^>]+>/g,'').trim();
+  postEditCaption.value=[[post.captionShort||'',post.captionLong||''].join('').replace(/<[^>]+>/g,'').trim(),normalizeFeedPostTags(post.tags||[]).join(' ')].filter(Boolean).join(' ');
   const editableStranger=!!(post.generatedStranger && post.type==='stranger');
   postEditStrangerIdentity?.classList.toggle('show',editableStranger);
   if(editableStranger){const meta=getIdentityMeta(post.author);if(postEditDisplayName)postEditDisplayName.value=meta.name||post.author;if(postEditHandle)postEditHandle.value=meta.handle||post.author;if(postEditLocation)postEditLocation.value=post.location||post.sub||'';}
@@ -8329,8 +8293,10 @@ function saveActivePostEdit(){
   const mediaDesc=postEditMediaDescription.value.trim();
   applyGeneratedStrangerIdentityEdit(post);
   commitPostEditCurrentDescription(post);
-  post.captionShort=caption?' '+caption:'';
-  post.captionLong='';
+  const parsedCaption=splitFeedEditorCaptionAndTags(caption);
+  post.captionShort=parsedCaption.parts.short?' '+escapeDMCardHTML(parsedCaption.parts.short):'';
+  post.captionLong=parsedCaption.parts.long?' '+escapeDMCardHTML(parsedCaption.parts.long):'';
+  post.tags=parsedCaption.tags;
   post.expanded=false;
   if(mediaDesc)post.mediaDescription=mediaDesc;
   if((post.mediaType||'image')==='image'){
@@ -8621,15 +8587,15 @@ function renderUserProfileGrid(active){
 
   const data=getUserRepostItems();
   if(!data.length){
-    grid.innerHTML='<div class="user-empty"><strong>暂无收藏</strong><span>收藏 Feed / Reel 后会直接出现在这里。</span></div>';
+    grid.innerHTML='<div class="user-empty"><strong>暂无转发</strong><span>转发 Feed / Reel 后会直接出现在这里。</span></div>';
     return;
   }
   grid.innerHTML=`<div class="user-grid">${data.map(row=>{
     if(row.kind==='feed'){
       const media=getPostCurrentMediaItem(row.post,posts.indexOf(row.post));
-      return `<div class="user-cell repost repost-linked ${media.url?'has-image':''}" data-link-label="IG" data-user-repost-feed="${escapeDMCardHTML(row.post.id)}">${media.url?`<img src="${escapeDMCardHTML(media.url)}" alt="">`:`<div class="repost-reel-card">${escapeDMCardHTML(row.post.mediaDescription||row.post.captionShort||'IG 动态')}</div>`}<button class="user-repost-remove" data-remove-user-repost-feed="${escapeDMCardHTML(row.post.id)}" type="button" aria-label="从收藏移除">×</button></div>`;
+      return `<div class="user-cell repost repost-linked ${media.url?'has-image':''}" data-link-label="IG" data-user-repost-feed="${escapeDMCardHTML(row.post.id)}">${media.url?`<img src="${escapeDMCardHTML(media.url)}" alt="">`:`<div class="repost-reel-card">${escapeDMCardHTML(row.post.mediaDescription||row.post.captionShort||'IG 动态')}</div>`}</div>`;
     }
-    return `<div class="user-cell repost reel-live repost-linked" data-link-label="REEL" data-user-repost-reel="${escapeDMCardHTML(row.reel.id)}"><div class="repost-reel-card">${escapeDMCardHTML(row.reel.caption||row.reel.videoDescription||'Reel')}</div><button class="user-repost-remove" data-remove-user-repost-reel="${escapeDMCardHTML(row.reel.id)}" type="button" aria-label="从收藏移除">×</button></div>`;
+    return `<div class="user-cell repost reel-live repost-linked" data-link-label="REEL" data-user-repost-reel="${escapeDMCardHTML(row.reel.id)}"><div class="repost-reel-card">${escapeDMCardHTML(row.reel.caption||row.reel.videoDescription||'Reel')}</div></div>`;
   }).join('')}</div>`;
 }
 function ensureUserRepostPreview(){
@@ -8669,7 +8635,7 @@ function openUserRepostFeedCard(postId){
       <div class="user-repost-preview-name">
         <strong>${escapeDMCardHTML(identity.name)}</strong>
         <span>@${escapeDMCardHTML(identity.handle||post.author)}</span>
-        <div class="user-repost-preview-note">来自你的收藏</div>
+        <div class="user-repost-preview-note">来自转发收藏</div>
       </div>
       <button class="user-repost-preview-close" data-user-repost-preview-close type="button">×</button>
     </div>
@@ -8706,20 +8672,6 @@ function jumpUserRepostToReel(reelId){
 }
 
 document.getElementById('userProfileGrid')?.addEventListener('click',event=>{
-  const removeFeed=event.target.closest('[data-remove-user-repost-feed]');
-  if(removeFeed){
-    event.preventDefault();event.stopPropagation();
-    const post=posts.find(item=>item.id===removeFeed.dataset.removeUserRepostFeed);
-    if(post){post.reposted=false;renderUserProfile();renderFeed();scheduleINSFeedPersistenceV104();}
-    return;
-  }
-  const removeReel=event.target.closest('[data-remove-user-repost-reel]');
-  if(removeReel){
-    event.preventDefault();event.stopPropagation();
-    const item=getReelsV15Item(removeReel.dataset.removeUserRepostReel);
-    if(item){item.reposted=false;renderUserProfile();renderReelsV15();}
-    return;
-  }
   const ownFeed=event.target.closest('[data-user-post-id]');
   if(ownFeed){openProfileContentDetail('user','feed',ownFeed.dataset.userPostId);return;}
   const ownReel=event.target.closest('[data-user-reel-id]');
@@ -8794,7 +8746,7 @@ function renderProfileContentDetail(scrollToSelected=true){
       return `<article class="pcd-card ${selected?'pcd-selected':''}" data-pcd-id="${escapeDMCardHTML(item.id)}">
         <div class="pcd-card-head">
           <div class="pcd-avatar" data-identity-avatar="${escapeDMCardHTML(item.author)}">${escapeDMCardHTML(identity.initial||'?')}</div>
-          <div class="pcd-author"><strong>${escapeDMCardHTML(identity.name)}</strong><span>@${escapeDMCardHTML(identity.handle||item.author)}</span>${repostFromUser?'<div class="pcd-repost-note">来自你的收藏</div>':''}</div>
+          <div class="pcd-author"><strong>${escapeDMCardHTML(identity.name)}</strong><span>@${escapeDMCardHTML(identity.handle||item.author)}</span>${repostFromUser?'<div class="pcd-repost-note">来自你的转发</div>':''}</div>
         </div>
         <div class="pcd-media reel">${escapeDMCardHTML(item.videoDescription||'Reel')}</div>
         <div class="pcd-body">
@@ -8815,7 +8767,7 @@ function renderProfileContentDetail(scrollToSelected=true){
     return `<article class="pcd-card ${selected?'pcd-selected':''}" data-pcd-id="${escapeDMCardHTML(item.id)}">
       <div class="pcd-card-head">
         <div class="pcd-avatar" data-identity-avatar="${escapeDMCardHTML(item.author)}">${escapeDMCardHTML(identity.initial||'?')}</div>
-        <div class="pcd-author"><strong>${escapeDMCardHTML(identity.name)}</strong><span>@${escapeDMCardHTML(identity.handle||item.author)}</span>${repostFromUser?'<div class="pcd-repost-note">来自你的收藏</div>':''}</div>
+        <div class="pcd-author"><strong>${escapeDMCardHTML(identity.name)}</strong><span>@${escapeDMCardHTML(identity.handle||item.author)}</span>${repostFromUser?'<div class="pcd-repost-note">来自你的转发</div>':''}</div>
       </div>
       <div class="pcd-media feed ${media.url?'has-image':'text-only'}">${media.url?`<img src="${escapeDMCardHTML(media.url)}" alt="">`:escapeDMCardHTML(item.mediaDescription||item.mediaText||'IG 动态')}</div>
       <div class="pcd-body">
@@ -10973,7 +10925,7 @@ function hydrateRocheIdentityData(payload={}){
   const demoRefs=new Set(['FufuA1','yy_1008','wuujo11','芙芙','Yuan_','Wujo_']);
   for(let i=posts.length-1;i>=0;i--){
     const p=posts[i];
-    if(demoRefs.has(p.author))posts.splice(i,1);
+    if(demoRefs.has(p.author) || p.type==='char' || p.type==='npc')posts.splice(i,1);
   }
   if(typeof commentsByPost!=='undefined'){
     Object.keys(commentsByPost).forEach(pid=>{
@@ -12319,8 +12271,7 @@ startINSAutoPublishTimer();
   min-height:54px;
 }
 
-
-/* Ins v1.04: Feed comment batching and independently removable user favorites. */
+/* v1.04.1: only the successful comment batching UI is carried over from v1.04. */
 .nini-ins-root .feed-comment-load-more{
   width:calc(100% - 28px);
   min-height:38px;
@@ -12337,32 +12288,6 @@ startINSAutoPublishTimer();
 }
 .nini-ins-root .feed-comment-load-more:disabled{opacity:.58;cursor:default}
 .nini-ins-root .feed-comment-load-more[hidden]{display:none}
-.nini-ins-root .user-repost-remove{
-  position:absolute;
-  top:6px;
-  right:6px;
-  z-index:8;
-  width:28px;
-  height:28px;
-  border:1px solid rgba(255,255,255,.42);
-  border-radius:50%;
-  background:rgba(17,17,17,.78);
-  color:#fff;
-  display:grid;
-  place-items:center;
-  padding:0;
-  font-size:18px;
-  line-height:1;
-  cursor:pointer;
-  box-shadow:0 3px 10px rgba(0,0,0,.18);
-  touch-action:manipulation;
-}
-.nini-ins-root .user-repost-remove::after{
-  content:"";
-  position:absolute;
-  inset:-5px;
-  border-radius:50%;
-}
 
 `;
 
