@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.04.1（基于 1.03 回退重修：首页动态交互与评论批次）
+// 版本：1.04.2（基于 1.03：Feed 点击链路专项修复 + 文案/tag 展开）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -8,7 +8,7 @@
 
   const PLUGIN_ID = 'nini-ins-roche';
   const APP_ID = 'nini-ins-home';
-  const VERSION = '1.04.1';
+  const VERSION = '1.04.2';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -244,9 +244,35 @@ function splitFeedEditorCaptionAndTags(raw=''){
   return {parts,tags};
 }
 
+/* v1.04.2: normalize every Feed caption before rendering.
+   This fixes legacy/generated rows that stored the whole caption in captionShort,
+   keeps hashtags in the dedicated blue tag lane, and guarantees long captions
+   actually have a captionLong section for 展开/收起. */
+function feedCaptionPlainText(value=''){
+  const holder=document.createElement('div');
+  holder.innerHTML=String(value||'');
+  return String(holder.textContent||'').replace(/\s+/g,' ').trim();
+}
+function ensureFeedCaptionPresentation(post){
+  if(!post)return;
+  const shortText=feedCaptionPlainText(post.captionShort||'');
+  const longText=feedCaptionPlainText(post.captionLong||'');
+  const fallbackText=feedCaptionPlainText(post.captionOriginal||post.caption||post.textOriginal||post.text||'');
+  const combined=[shortText,longText].filter(Boolean).join(' ').trim() || fallbackText;
+  const inlineTags=normalizeFeedPostTags((combined.match(/(^|\s)#[^\s#]+/g)||[]).map(x=>String(x).trim()));
+  const clean=stripGeneratedCaptionHashtags(combined).trim();
+  const parts=splitGeneratedCaptionText(clean);
+  post.captionShort=parts.short?` ${escapeDMCardHTML(parts.short)}`:'';
+  post.captionLong=parts.long?` ${escapeDMCardHTML(parts.long)}`:'';
+  const mergedTags=normalizeFeedPostTags([...(post.tags||[]),...inlineTags]);
+  if(!mergedTags.length && post.type!=='user')mergedTags.push('#daily');
+  post.tags=mergedTags;
+}
+
 function renderFeed(){
   let html='';
   posts.forEach((p,i)=>{
+    ensureFeedCaptionPresentation(p);
     html+=`
       <article class="post" id="${p.id}">
         <div class="post-head">
@@ -324,19 +350,28 @@ function renderFeed(){
 }
 
 
-/* v1.04.1: delegated Feed controls. Direct-mount/mobile must not depend on inline onclick. */
-document.getElementById('feed')?.addEventListener('click',event=>{
-  const menu=event.target.closest('[data-feed-menu-index]');
-  if(menu){event.preventDefault();event.stopPropagation();const i=Number(menu.dataset.feedMenuIndex);if(Number.isInteger(i))openPostMenu(i);return;}
-  const like=event.target.closest('[data-feed-like-index]');
-  if(like){event.preventDefault();event.stopPropagation();const i=Number(like.dataset.feedLikeIndex);if(Number.isInteger(i))toggleLike(i);return;}
-  const repost=event.target.closest('[data-feed-repost-index]');
-  if(repost){event.preventDefault();event.stopPropagation();const i=Number(repost.dataset.feedRepostIndex);if(Number.isInteger(i))toggleRepost(i);return;}
-  const more=event.target.closest('[data-feed-caption-index]');
-  if(more){event.preventDefault();event.stopPropagation();const i=Number(more.dataset.feedCaptionIndex);if(Number.isInteger(i))toggleCaption(i);return;}
-  const translation=event.target.closest('[data-feed-translation-index]');
-  if(translation){event.preventDefault();event.stopPropagation();const i=Number(translation.dataset.feedTranslationIndex);if(Number.isInteger(i))toggleTranslation(i);}
+/* v1.04.2: Feed primary controls delegate from document, not #feed.
+   In Direct Mount the #feed node is not guaranteed to exist yet when this script section runs;
+   the document is stable, exactly like the already-working comment/share delegation below. */
+function handleFeedPrimaryControlTap(event){
+  const target=event.target?.closest ? event.target : event.target?.parentElement;
+  if(!target)return false;
+  const menu=target.closest?.('[data-feed-menu-index]');
+  if(menu){event.preventDefault();const i=Number(menu.dataset.feedMenuIndex);if(Number.isInteger(i))openPostMenu(i);return true;}
+  const like=target.closest?.('[data-feed-like-index]');
+  if(like){event.preventDefault();const i=Number(like.dataset.feedLikeIndex);if(Number.isInteger(i))toggleLike(i);return true;}
+  const repost=target.closest?.('[data-feed-repost-index]');
+  if(repost){event.preventDefault();const i=Number(repost.dataset.feedRepostIndex);if(Number.isInteger(i))toggleRepost(i);return true;}
+  const more=target.closest?.('[data-feed-caption-index]');
+  if(more){event.preventDefault();const i=Number(more.dataset.feedCaptionIndex);if(Number.isInteger(i))toggleCaption(i);return true;}
+  const translation=target.closest?.('[data-feed-translation-index]');
+  if(translation){event.preventDefault();const i=Number(translation.dataset.feedTranslationIndex);if(Number.isInteger(i))toggleTranslation(i);return true;}
+  return false;
+}
+document.addEventListener('click',event=>{
+  handleFeedPrimaryControlTap(event);
 });
+
 
 let postMediaPointerState=null;
 
@@ -1443,7 +1478,9 @@ async function publishUserFeedPost(){
   }
   const caption=document.getElementById('cpCaption').value.trim();
   const tagsRaw=document.getElementById('cpTag').value.trim();
-  const tags=normalizeFeedPostTags(tagsRaw);
+  const inlineTags=normalizeFeedPostTags((caption.match(/(^|\s)#[^\s#]+/g)||[]).map(x=>String(x).trim()));
+  const tags=normalizeFeedPostTags([...normalizeFeedPostTags(tagsRaw),...inlineTags]);
+  const captionParts=splitGeneratedCaptionText(stripGeneratedCaptionHashtags(caption));
   const location=document.getElementById('cpLocation').value.trim();
   const taggedIds=[...new Set(createPostState.taggedChars.map(normalizeSocialActorId).filter(isFormalSocialActor))];
   const mediaItems=createPostState.media.slice(0,4).map((item,index)=>{
@@ -1462,8 +1499,8 @@ async function publishUserFeedPost(){
     reposts:Math.max(0,Math.round(userProfileState.followers*(0.005+Math.random()*0.025))),
     shares:Math.max(0,Math.round(userProfileState.followers*(0.008+Math.random()*0.03))),
     liked:false,reposted:false,expanded:false,translated:false,
-    captionShort:caption?` ${escapeDMCardHTML(caption)}`:'',
-    captionLong:'',
+    captionShort:captionParts.short?` ${escapeDMCardHTML(captionParts.short)}`:'',
+    captionLong:captionParts.long?` ${escapeDMCardHTML(captionParts.long)}`:'',
     tags,
     translation:'',taggedChars:taggedIds,
     allowStrangerComments:document.getElementById('cpStrangerSwitch')?.classList.contains('on')!==false
@@ -2679,7 +2716,7 @@ Visual media descriptions are always written in Chinese. Locations and tags are 
 
 const INS_FEED_COMPACT_SURFACE_PROMPT_EN = `Instagram Feed task.
 Generate one natural everyday post for each selected actor, not a plot beat or a performance for the user.
-Caption may be short or plain. Feed image count is 1-4. When request.extra.requestedMediaCounts is present, follow that plan exactly by output item index. Return mediaItems with exactly that many objects for each post; every media item must have its own distinct mediaDescription and the descriptions must describe different shots/details while still belonging to the same post. Every mediaDescription MUST be Chinese. Single-image posts are normal and should remain possible.
+Prefer a natural 2-4 sentence Feed caption with enough substance to read like a real post; do not default to an ultra-short one-line caption unless the supplied persona/context clearly calls for it. Feed image count is 1-4. When request.extra.requestedMediaCounts is present, follow that plan exactly by output item index. Return mediaItems with exactly that many objects for each post; every media item must have its own distinct mediaDescription and the descriptions must describe different shots/details while still belonging to the same post. Every mediaDescription MUST be Chinese. Single-image posts are normal and should remain possible.
 If a location is returned, it MUST be English in City·Country / Place·Country format with the middle dot ·. All tags MUST be English.
 Return plausible positive aggregate engagement metrics: likes, comments, reposts and shares.
 When includeInitialComments=true, return exactly the requested number of actual initialComments. These are visible comments and are separate from the aggregate comments metric.
@@ -2722,7 +2759,7 @@ For non-Chinese text, provide separate Chinese textTranslation. Return JSON only
 
 const INS_SURFACE_PROMPTS = Object.freeze({
   home_strangers:'首页陌生推荐：来源全球化但不设硬配额；默认提高日本、韩国、英语地区以及繁体中文地区（香港/澳门/台湾）账号的出现权重。账号有独立生活，不围绕 user。内容可以平淡、低信息量；陌生人身份与内容应自洽。每条陌生人 IG 动态必须同时返回 5 条可见 initialComments。图片描述只用中文；昵称+ID+文案遵循账号所属地区语言与当地网感；地点用英文 City·Country / Place·Country；tag 只用英文；5 条评论至少 2 种语言且至少 1 条不同于正文语言。',
-  feed_generate:'Feed：以自然生活流为主，不要求每条有剧情、金句或主题。文案可短可普通。图片描述固定中文；文案跟随账号自然语言；地点和 tag 固定英文。若一次生成多个账号，整体控制网感浓度；5 条评论至少 2 种语言且不能全跟正文同语种。',
+  feed_generate:'Feed：以自然生活流为主，不要求每条有剧情、金句或主题。正文通常写成自然的 2–4 句，不要默认只给一句极短文案；只有人物语气或当下情境确实适合时才用极短句。图片描述固定中文；文案跟随账号自然语言；地点和 tag 固定英文。若一次生成多个账号，整体控制网感浓度；5 条评论至少 2 种语言且不能全跟正文同语种。',
   story_generate:'Story：轻量、即时、随手。一次 1–4 个 item，共用一个 caption；没有公开评论线程，进一步交流转 DM。',
   reels_generate:'Reels：更偏视觉和短视频片段，可以有城市、旅行、兴趣、日常、搞笑等内容；视频描述固定中文，文案跟随账号自然语言，地点和 tag 固定英文；评论语言独立于正文，不得整批跟随正文语种。',
   public_comment_batch:'公开评论：一批固定生成 5 条实际评论。评论应短、杂、关系和社交距离不同；标准 5 条至少 2 种语言，并至少 1 条与正文主语言不同。评论者语言独立抽样，不得整批复制发帖人的语言。允许问号、简单附和、emoji 或不玩梗。不要五个人都夸人、都长篇、都热情。',
@@ -7616,16 +7653,17 @@ function normalizeGeneratedLocationLabel(value='',sourceLanguage='',text='',regi
   return raw || inferGeneratedEnglishLocation(sourceLanguage,text,region);
 }
 function splitGeneratedCaptionText(text=''){
-  const clean=String(text||'').trim();
+  const clean=String(text||'').replace(/\s+/g,' ').trim();
   if(!clean)return {short:'',long:''};
-  if(clean.length<=42)return {short:clean,long:''};
+  const previewLimit=32;
+  if(clean.length<=previewLimit)return {short:clean,long:''};
   const marks=['。','！','？','…','~','.','!','?','，',',',' '];
   let cut=-1;
   for(const mark of marks){
-    const pos=clean.lastIndexOf(mark,42);
+    const pos=clean.lastIndexOf(mark,previewLimit);
     if(pos>cut)cut=pos;
   }
-  if(cut<18)cut=42;
+  if(cut<14)cut=previewLimit-1;
   const short=clean.slice(0,cut+1).trim();
   const long=clean.slice(cut+1).trim();
   return {short:short||clean,long};
@@ -12270,6 +12308,29 @@ startINSAutoPublishTimer();
 .nini-ins-root .phone > .bottom-nav .tab{
   min-height:54px;
 }
+
+/* v1.04.2 Feed hit routing: keep the actual controls above media/overlay layers.
+   Children do not steal the hit; the semantic parent receives the tap consistently. */
+.nini-ins-root .post-head,
+.nini-ins-root .post-right,
+.nini-ins-root .actions,
+.nini-ins-root .caption{position:relative;z-index:3;pointer-events:auto!important}
+.nini-ins-root .menu-btn,
+.nini-ins-root .actions .act,
+.nini-ins-root .caption .more{
+  position:relative;
+  z-index:4;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent;
+}
+.nini-ins-root .menu-btn svg,
+.nini-ins-root .menu-btn path,
+.nini-ins-root .actions .act > *,
+.nini-ins-root .caption .more > *{pointer-events:none!important}
+.nini-ins-root .menu-btn{min-width:34px;min-height:34px}
+.nini-ins-root .actions .act{min-height:38px}
+.nini-ins-root .caption .more{display:inline-block;min-height:28px;line-height:28px;margin-left:2px}
 
 /* v1.04.1: only the successful comment batching UI is carried over from v1.04. */
 .nini-ins-root .feed-comment-load-more{
