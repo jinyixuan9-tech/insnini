@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.02（首页尺寸预览）
+// 版本：1.02（首页与 DM 头像行尺寸预览）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11810,6 +11810,59 @@ startINSAutoPublishTimer();
   margin-top:4px;
   font-size:10px;
   line-height:14px;
+}
+
+/* Ins v1.02: compact DM avatar rail and speech-bubble user note. */
+.nini-ins-root #page-dm .dm-avatar-strip{
+  gap:10px;
+  padding:27px 12px 9px 18px;
+  min-height:96px;
+  overflow-y:hidden;
+}
+.nini-ins-root #page-dm .dm-profile-item{
+  width:60px;
+  flex:0 0 60px;
+  position:relative;
+}
+.nini-ins-root #page-dm .dm-profile-ring,
+.nini-ins-root #page-dm .dm-profile-plus{
+  width:48px;
+  height:48px;
+}
+.nini-ins-root #page-dm .dm-profile-ring{
+  font-size:11px;
+}
+.nini-ins-root #page-dm .dm-profile-plus{
+  font-size:25px;
+}
+.nini-ins-root #page-dm .dm-profile-name{
+  margin-top:4px;
+  font-size:10px;
+  line-height:13px;
+}
+.nini-ins-root #page-dm .dm-note-bubble{
+  top:-24px;
+  min-width:72px;
+  max-width:96px;
+  padding:7px 10px;
+  border-radius:16px;
+  border:1px solid rgba(220,222,228,.92);
+  box-shadow:0 6px 18px rgba(0,0,0,.10);
+  font-size:10px;
+  line-height:13px;
+  z-index:3;
+}
+.nini-ins-root #page-dm .dm-note-bubble::after{
+  content:"";
+  position:absolute;
+  left:28px;
+  bottom:-9px;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#fff;
+  border:1px solid rgba(220,222,228,.92);
+  box-shadow:0 2px 5px rgba(0,0,0,.06);
 }
 `;
 
