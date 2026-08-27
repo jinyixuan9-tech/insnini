@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.07.5（首页正文翻译严格单次请求）
+// 版本：1.07.6（首页正文完整显示）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -8,7 +8,7 @@
 
   const PLUGIN_ID = 'nini-ins-roche';
   const APP_ID = 'nini-ins-home';
-  const VERSION = '1.07.5';
+  const VERSION = '1.07.6';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -267,11 +267,10 @@ function splitFeedEditorCaptionAndTags(raw=''){
   return {parts,tags};
 }
 
-/* v1.04.3: translation visibility + generation-length follow-up; comment system intentionally unchanged. */
-/* v1.04.2: normalize every Feed caption before rendering.
-   This fixes legacy/generated rows that stored the whole caption in captionShort,
-   keeps hashtags in the dedicated blue tag lane, and guarantees long captions
-   actually have a captionLong section for 展开/收起. */
+/* v1.07.6: normalize every Feed caption before rendering.
+   Legacy/generated rows may still store text across captionShort/captionLong,
+   but Home now renders both parts together in full and keeps hashtags in the
+   dedicated blue tag lane. */
 function feedCaptionPlainText(value=''){
   const holder=document.createElement('div');
   holder.innerHTML=String(value||'');
@@ -352,16 +351,13 @@ function renderFeed(){
 
         ${(()=>{
           const identity=getIdentityMeta(p.author);
-          const originalText=[p.captionShort||'',p.captionLong||''].join(' ');
           const canTranslate=shouldOfferFeedTranslation(p);
-          const hasMore=!!String(p.captionLong||'').trim();
           const tagHtml=renderFeedPostTags(p);
           return `<div class="caption">
           <strong>${escapeDMCardHTML(identity.name)}</strong>
           <span>${p.captionShort}</span>
-          ${p.expanded?`<span>${p.captionLong}</span>`:''}
+          <span>${p.captionLong}</span>
           ${tagHtml}
-          ${hasMore?`<span class="more" data-feed-caption-index="${i}">${p.expanded?'收起':'展开'}</span>`:''}
         </div>
         ${canTranslate?`<div class="translation-toggle" data-feed-translation-index="${i}">${p.translated?'收起翻译':'查看翻译'}</div>
         <div class="translation ${p.translated?'show':''}">${escapeDMCardHTML(p.translation||'')}</div>`:''}`;
@@ -386,8 +382,6 @@ function handleFeedPrimaryControlTap(event){
   if(like){event.preventDefault();const i=Number(like.dataset.feedLikeIndex);if(Number.isInteger(i))toggleLike(i);return true;}
   const repost=target.closest?.('[data-feed-repost-index]');
   if(repost){event.preventDefault();const i=Number(repost.dataset.feedRepostIndex);if(Number.isInteger(i))toggleRepost(i);return true;}
-  const more=target.closest?.('[data-feed-caption-index]');
-  if(more){event.preventDefault();const i=Number(more.dataset.feedCaptionIndex);if(Number.isInteger(i))toggleCaption(i);return true;}
   const translation=target.closest?.('[data-feed-translation-index]');
   if(translation){event.preventDefault();const i=Number(translation.dataset.feedTranslationIndex);if(Number.isInteger(i))toggleTranslation(i);return true;}
   return false;
@@ -491,7 +485,6 @@ function toggleRepost(i){
   if(typeof renderUserProfile==='function')renderUserProfile();
   popAfter(`#${posts[i].id} [data-role="repost"]`);
 }
-function toggleCaption(i){posts[i].expanded=!posts[i].expanded;rerenderKeepScroll();}
 function toggleTranslation(i){
   const post=posts[i];
   if(!post || !shouldOfferFeedTranslation(post))return;
@@ -2795,8 +2788,8 @@ Do not turn the guestbook into a DM conversation. Keep distance, tone and famili
 For non-Chinese text, provide separate Chinese textTranslation. Return JSON only.`;
 
 const INS_SURFACE_PROMPTS = Object.freeze({
-  home_strangers:'首页陌生推荐：来源全球化但不设硬配额；默认提高日本、韩国、英语地区以及繁体中文地区（香港/澳门/台湾）账号的出现权重。账号有独立生活，不围绕 user。内容可以平淡、低信息量；陌生人身份与内容应自洽。正文通常 2–4 句，多数应超过 32 字符预览阈值，极短句只偶尔出现。每条陌生人 IG 动态必须同时返回 5 条可见 initialComments。图片描述只用中文；昵称+ID+文案遵循账号所属地区语言与当地网感；非中文正文必须返回中文 captionTranslation；地点用英文 City·Country / Place·Country；tag 只用英文；5 条评论至少 2 种语言且至少 1 条不同于正文语言。',
-  feed_generate:'Feed：以自然生活流为主，不要求每条有剧情、金句或主题。正文通常写成自然的 2–4 句；多数动态正文应超过首页 32 字符预览阈值，让长文案能正常出现“展开/收起”，极短句只偶尔出现。图片描述固定中文；文案跟随账号自然语言；非中文正文必须同时返回中文 captionTranslation；地点和 tag 固定英文。若一次生成多个账号，整体控制网感浓度；5 条评论至少 2 种语言且不能全跟正文同语种。',
+  home_strangers:'首页陌生推荐：来源全球化但不设硬配额；默认提高日本、韩国、英语地区以及繁体中文地区（香港/澳门/台湾）账号的出现权重。账号有独立生活，不围绕 user。内容可以平淡、低信息量；陌生人身份与内容应自洽。正文通常 2–4 句，长短自然，不需要为了预览或折叠刻意控制长度。每条陌生人 IG 动态必须同时返回 5 条可见 initialComments。图片描述只用中文；昵称+ID+文案遵循账号所属地区语言与当地网感；非中文正文必须返回中文 captionTranslation；地点用英文 City·Country / Place·Country；tag 只用英文；5 条评论至少 2 种语言且至少 1 条不同于正文语言。',
+  feed_generate:'Feed：以自然生活流为主，不要求每条有剧情、金句或主题。正文通常写成自然的 2–4 句，长短自然，不需要为了预览或折叠刻意控制长度。图片描述固定中文；文案跟随账号自然语言；非中文正文必须同时返回中文 captionTranslation；地点和 tag 固定英文。若一次生成多个账号，整体控制网感浓度；5 条评论至少 2 种语言且不能全跟正文同语种。',
   story_generate:'Story：轻量、即时、随手。一次 1–4 个 item，共用一个 caption；没有公开评论线程，进一步交流转 DM。',
   reels_generate:'Reels：更偏视觉和短视频片段，可以有城市、旅行、兴趣、日常、搞笑等内容；视频描述固定中文，文案跟随账号自然语言，地点和 tag 固定英文；评论语言独立于正文，不得整批跟随正文语种。',
   public_comment_batch:'公开评论：一批固定生成 5 条实际评论。评论应短、杂、关系和社交距离不同；标准 5 条至少 2 种语言，并至少 1 条与正文主语言不同。评论者语言独立抽样，不得整批复制发帖人的语言。允许问号、简单附和、emoji 或不玩梗。不要五个人都夸人、都长篇、都热情。',
@@ -11305,7 +11298,7 @@ startINSAutoPublishTimer();
     }
     if (task === 'feed_generate') {
       return 'Return JSON only. No Markdown or explanation. Schema: {"items":[{"actorId":"...","author":"...","mediaType":"image","mediaItems":[{"mediaDescription":"中文图片描述","mediaUrl":"","albumCategory":"portrait_selfie","albumTags":["夏季","甜品店"],"albumEraId":""}],"captionOriginal":"...","captionTranslation":"","sourceLanguage":"...","location":"Seoul·Korea","tags":["#daily"],"metrics":{"likes":123,"comments":18,"reposts":4,"shares":7},"initialComments":[{"actorId":"","author":"citycat_82","displayName":"City Cat","textOriginal":"...","textTranslation":"","sourceLanguage":"en","replyToActorId":""}]}]}.' +
-        ' Every mediaDescription MUST be Chinese. For image media, when the supplied preference/albumMatcher asks for album planning, also return albumCategory and Chinese albumTags for every slot; albumEraId is only for portrait slots when era matching is active. If extra.freeMediaPlan=true, freely choose 1-4 media items based on the post itself; do not force a human/scene mix or a fixed count. Keep captionOriginal in the actor\'s natural language. Prefer 2-4 natural sentences and usually enough text to exceed the 32-character Feed preview threshold; ultra-short captions should be occasional. If non-Chinese, captionTranslation is REQUIRED and must contain Chinese; if Chinese, captionTranslation must be empty.' +
+        ' Every mediaDescription MUST be Chinese. For image media, when the supplied preference/albumMatcher asks for album planning, also return albumCategory and Chinese albumTags for every slot; albumEraId is only for portrait slots when era matching is active. If extra.freeMediaPlan=true, freely choose 1-4 media items based on the post itself; do not force a human/scene mix or a fixed count. Keep captionOriginal in the actor\'s natural language. Prefer 2-4 natural sentences with a naturally varied length; do not write to a preview or collapse threshold. If non-Chinese, captionTranslation is REQUIRED and must contain Chinese; if Chinese, captionTranslation must be empty.' +
         ' location MUST be English in City·Country / Place·Country format. tags MUST be English-only hashtags.' +
         ' Metrics must be plausible positive integers. If extra.includeInitialComments=true, return exactly extra.initialCommentCount visible comments and make metrics.comments at least that count.' +
         ' Stranger comment author must always be a string handle, never an object. Keep displayName separate. Every stranger handle/displayName must follow the current world/network-culture naming rules for the commenter account region/language; commenter language is independent from the post author language. Never generate the current user/persona as a commenter. For the standard 5-comment batch use at least 2 sourceLanguage values and at least one language different from the post caption language.';
@@ -11318,9 +11311,9 @@ startINSAutoPublishTimer();
 
     const map = {
       home_strangers:
-        '返回 {items:[{actor:{handle,displayName,language,region,bio},mediaItems:[{mediaDescription,mediaUrl?}],captionOriginal,captionTranslation,sourceLanguage,location,tags,metrics:{likes,comments,reposts,shares},initialComments:[{actorId,author,displayName,textOriginal,textTranslation,sourceLanguage,replyToActorId}]}]}。必须严格遵守 request.extra.requestedMediaCounts；每条动态 1-4 个 mediaItems，多图描述必须不同且 mediaDescription 一律中文。陌生人的昵称+ID+文案遵循其国家/地区语言与当地 IG 命名习惯。正文通常 2–4 句且多数超过 32 字符预览阈值；非中文 captionOriginal 必须同时返回中文 captionTranslation。location 只用英文 City·Country / Place·Country（如 Seoul·Korea、Osaka·Japan、Taiwan·China），tags 只用英文。首页默认提高日韩、英语地区、港澳台繁中地区权重但不设硬配额。5 条评论至少 2 种 sourceLanguage，且至少 1 条与正文语言不同。',
+        '返回 {items:[{actor:{handle,displayName,language,region,bio},mediaItems:[{mediaDescription,mediaUrl?}],captionOriginal,captionTranslation,sourceLanguage,location,tags,metrics:{likes,comments,reposts,shares},initialComments:[{actorId,author,displayName,textOriginal,textTranslation,sourceLanguage,replyToActorId}]}]}。必须严格遵守 request.extra.requestedMediaCounts；每条动态 1-4 个 mediaItems，多图描述必须不同且 mediaDescription 一律中文。陌生人的昵称+ID+文案遵循其国家/地区语言与当地 IG 命名习惯。正文通常 2–4 句且长短自然，不需要适配预览或折叠阈值；非中文 captionOriginal 必须同时返回中文 captionTranslation。location 只用英文 City·Country / Place·Country（如 Seoul·Korea、Osaka·Japan、Taiwan·China），tags 只用英文。首页默认提高日韩、英语地区、港澳台繁中地区权重但不设硬配额。5 条评论至少 2 种 sourceLanguage，且至少 1 条与正文语言不同。',
       feed_generate:
-        '返回 {items:[{actorId,author,mediaType,mediaItems:[{mediaDescription,mediaUrl?,albumCategory?,albumTags?,albumEraId?}],captionOriginal,captionTranslation,sourceLanguage,location,tags,metrics:{likes,comments,reposts,shares},initialComments:[]}]}。如果 extra.freeMediaPlan=true，则根据动态本身自然决定 1-4 个 mediaItems，不固定张数、不固定人像/景物组合；否则仅在 request.extra.requestedMediaCounts 存在时严格遵守。多图描述必须彼此不同且全部中文。如 supplied preference 要求私人相册规划，每个图片槽位返回固定 albumCategory + 中文 albumTags；时期匹配开启时只有人像返回 albumEraId。captionOriginal 跟随发帖账号自然语言，通常 2–4 句且多数超过 32 字符预览阈值；非中文 captionOriginal 必须同时返回中文 captionTranslation；location 只用英文 City·Country / Place·Country；tags 只用英文；标准 5 条评论至少 2 种语言且至少 1 条不同于正文。',
+        '返回 {items:[{actorId,author,mediaType,mediaItems:[{mediaDescription,mediaUrl?,albumCategory?,albumTags?,albumEraId?}],captionOriginal,captionTranslation,sourceLanguage,location,tags,metrics:{likes,comments,reposts,shares},initialComments:[]}]}。如果 extra.freeMediaPlan=true，则根据动态本身自然决定 1-4 个 mediaItems，不固定张数、不固定人像/景物组合；否则仅在 request.extra.requestedMediaCounts 存在时严格遵守。多图描述必须彼此不同且全部中文。如 supplied preference 要求私人相册规划，每个图片槽位返回固定 albumCategory + 中文 albumTags；时期匹配开启时只有人像返回 albumEraId。captionOriginal 跟随发帖账号自然语言，通常 2–4 句且长短自然，不需要适配预览或折叠阈值；非中文 captionOriginal 必须同时返回中文 captionTranslation；location 只用英文 City·Country / Place·Country；tags 只用英文；标准 5 条评论至少 2 种语言且至少 1 条不同于正文。',
       story_generate:
         '返回 {items:[{actorId,captionOriginal,captionTranslation,sourceLanguage,storyItems:[{type,mediaDescription,mediaUrl?,albumCategory?,albumTags?,albumEraId?}]}]}；每个 Story batch 自然决定 1-4 个 item，无公开评论线程。图片描述一律中文。如 supplied preference 要求私人相册规划，图片 item 返回固定 albumCategory + 中文 albumTags；时期匹配开启时只有人像返回 albumEraId。不要固定人像/景物比例。',
       reels_generate:
