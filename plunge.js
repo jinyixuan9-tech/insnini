@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：INS
-// 版本：1.1.1（Roche 生图接口接入）
+// 版本：1.1.1（Roche 生图设置自动关联显示）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -9752,13 +9752,109 @@ const insImagePromptSettings = {
   positive:'',
   negative:''
 };
+function installINSImageSettingsUI(){
+  const drawerButton=document.getElementById('drawerImagePromptBtn');
+  const drawerTitle=drawerButton?.querySelector('.drawer-copy strong');
+  const drawerLabel=drawerButton?.querySelector('.drawer-copy span');
+  if(drawerTitle)drawerTitle.textContent='生图设置';
+  if(drawerLabel){
+    drawerLabel.id='drawerImageSettingsLabel';
+    if(!drawerLabel.textContent?.trim() || drawerLabel.textContent.includes('留空'))drawerLabel.textContent='自动关联 Roche 当前生图 API';
+  }
+
+  const card=document.getElementById('profileImagePromptCard');
+  const cardTitle=card?.querySelector('.profile-setting-head strong');
+  if(cardTitle)cardTitle.textContent='生图设置';
+  if(card&&!document.getElementById('insRocheImageApiBlock')){
+    const firstBlock=card.querySelector('.profile-setting-block');
+    firstBlock?.insertAdjacentHTML('beforebegin',`
+      <div class="profile-setting-block" id="insRocheImageApiBlock">
+        <label class="profile-setting-label">Roche 生图 API</label>
+        <div class="profile-setting-notebox" id="insRocheImageApiStatus">正在读取 Roche 当前生图配置…</div>
+      </div>
+      <div class="profile-setting-block ins-image-api-field">
+        <label class="profile-setting-label" for="insRocheImageApiChannel">当前渠道</label>
+        <input class="profile-setting-input" id="insRocheImageApiChannel" readonly value="正在读取…"/>
+      </div>
+      <div class="profile-setting-block ins-image-api-field">
+        <label class="profile-setting-label" for="insRocheImageApiEndpoint">Base URL 或接口地址</label>
+        <input class="profile-setting-input" id="insRocheImageApiEndpoint" readonly value="正在读取…"/>
+      </div>
+      <div class="profile-setting-block ins-image-api-field">
+        <label class="profile-setting-label" for="insRocheImageApiModel">模型</label>
+        <input class="profile-setting-input" id="insRocheImageApiModel" readonly value="正在读取…"/>
+      </div>
+      <div class="profile-setting-block">
+        <div class="profile-setting-notebox">这里自动读取 Roche 当前生图配置，不需要在 INS 再填 URL 或 Key，也不会建立副生图 API。Roche 未向插件公开的敏感信息不会显示。</div>
+        <button class="profile-subapi-mini ins-image-api-refresh" id="insRocheImageApiRefresh" type="button">重新读取 Roche 生图配置</button>
+      </div>`);
+  }
+}
+function formatINSRocheImageEndpoint(value=''){
+  return String(value||'').trim().replace(/([?#]).*$/,'').replace(/\/\/[^/@\s]+@/,'//');
+}
+function setINSRocheImageApiField(id,value,fallback='未读取到'){
+  const input=document.getElementById(id);
+  if(!input)return;
+  const display=String(value||'').trim()||fallback;
+  input.value=display;
+  input.title=display;
+}
+async function refreshINSRocheImageApiStatus(){
+  installINSImageSettingsUI();
+  const status=document.getElementById('insRocheImageApiStatus');
+  const refresh=document.getElementById('insRocheImageApiRefresh');
+  const drawerLabel=document.getElementById('drawerImageSettingsLabel');
+  if(status)status.textContent='正在读取 Roche 当前生图配置…';
+  if(refresh){refresh.disabled=true;refresh.textContent='读取中…';}
+  setINSRocheImageApiField('insRocheImageApiChannel','正在读取…');
+  setINSRocheImageApiField('insRocheImageApiEndpoint','正在读取…');
+  setINSRocheImageApiField('insRocheImageApiModel','正在读取…');
+  try{
+    const bridge=getRocheImageBridge();
+    if(!bridge){
+      if(status)status.textContent='未检测到 Roche 生图接口。请先在 Roche 完成生图配置。';
+      if(drawerLabel)drawerLabel.textContent='未检测到 Roche 生图 API';
+      setINSRocheImageApiField('insRocheImageApiChannel','','未连接');
+      setINSRocheImageApiField('insRocheImageApiEndpoint','','未连接');
+      setINSRocheImageApiField('insRocheImageApiModel','','未连接');
+      return null;
+    }
+    const config=await getRocheImageConfigSnapshot();
+    const linked=!!(config?.raw||config?.channel||config?.endpoint||config?.model);
+    if(linked){
+      if(status)status.textContent='已自动关联 Roche 当前生图 API。INS 的生图按钮会继续使用这套配置。';
+      if(drawerLabel)drawerLabel.textContent=`已关联 · ${config.model||config.channel||'Roche 当前生图配置'}`;
+    }else{
+      if(status)status.textContent='已连接 Roche 生图桥接，但 Roche 暂未返回可显示的渠道、地址或模型信息。';
+      if(drawerLabel)drawerLabel.textContent='已连接 Roche · 暂未读取到配置';
+    }
+    setINSRocheImageApiField('insRocheImageApiChannel',config?.channel,linked?'Roche 当前渠道':'未读取到');
+    setINSRocheImageApiField('insRocheImageApiEndpoint',formatINSRocheImageEndpoint(config?.endpoint),linked?'由 Roche 内部管理':'未读取到');
+    setINSRocheImageApiField('insRocheImageApiModel',config?.model,linked?'Roche 当前模型':'未读取到');
+    return config;
+  }catch(error){
+    if(status)status.textContent='读取 Roche 生图配置失败：'+String(error?.message||error||'未知错误');
+    if(drawerLabel)drawerLabel.textContent='Roche 生图配置读取失败';
+    setINSRocheImageApiField('insRocheImageApiChannel','','读取失败');
+    setINSRocheImageApiField('insRocheImageApiEndpoint','','读取失败');
+    setINSRocheImageApiField('insRocheImageApiModel','','读取失败');
+    return null;
+  }finally{
+    if(refresh){refresh.disabled=false;refresh.textContent='重新读取 Roche 生图配置';}
+  }
+}
 function openImagePromptSettings(){
+  installINSImageSettingsUI();
   closeProfileDrawer();
   document.getElementById('profileDrawerDim')?.classList.add('show');
-  document.getElementById('profileImagePromptCard')?.classList.add('show');
+  const card=document.getElementById('profileImagePromptCard');
+  card?.classList.add('show');
+  if(card)card.scrollTop=0;
   document.getElementById('insImagePromptLanguage').value=insImagePromptSettings.descriptionLanguage||'zh';
   document.getElementById('insImagePromptPositive').value=insImagePromptSettings.positive||'';
   document.getElementById('insImagePromptNegative').value=insImagePromptSettings.negative||'';
+  void refreshINSRocheImageApiStatus();
 }
 function closeImagePromptSettings(){
   document.getElementById('profileImagePromptCard')?.classList.remove('show');
@@ -10338,6 +10434,8 @@ async function clearAllNiniINSData(){
 }
 
 installHomeFeedTranslationApiUI();
+installINSImageSettingsUI();
+void refreshINSRocheImageApiStatus();
 document.getElementById('userProfileMenuBtn')?.addEventListener('click', openProfileDrawer);
 document.getElementById('profileDrawerClose')?.addEventListener('click', closeProfileDrawer);
 document.getElementById('profileDrawerDim')?.addEventListener('click', ()=>{
@@ -10395,6 +10493,9 @@ document.getElementById('profileAtmosphereReset')?.addEventListener('click',()=>
   try{localStorage.removeItem(INS_WORLD_PROMPT_STORAGE_KEY);}catch(e){}
 });
 document.getElementById('profileImagePromptClose')?.addEventListener('click', closeImagePromptSettings);
+document.getElementById('profileImagePromptCard')?.addEventListener('pointerup',event=>event.stopPropagation());
+document.getElementById('profileImagePromptCard')?.addEventListener('click',event=>event.stopPropagation());
+document.getElementById('insRocheImageApiRefresh')?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();void refreshINSRocheImageApiStatus();});
 document.getElementById('profileImagePromptSave')?.addEventListener('click',()=>{
   insImagePromptSettings.descriptionLanguage=document.getElementById('insImagePromptLanguage').value||'zh';
   insImagePromptSettings.positive=document.getElementById('insImagePromptPositive').value.trim();
@@ -13180,6 +13281,10 @@ startINSAutoPublishTimer();
 .feed-original-toggle:disabled{opacity:.58;cursor:default}
 #profileFeedTranslationApiCard .profile-setting-notebox{word-break:break-word}
 #profileFeedTranslationApiCard .profile-setting-save{margin-top:14px}
+#profileImagePromptCard .profile-setting-notebox{word-break:break-word}
+#profileImagePromptCard .profile-setting-input[readonly]{background:rgba(255,255,255,.66);color:#555f6b;cursor:default}
+#profileImagePromptCard .ins-image-api-refresh{width:100%;height:38px;margin-top:10px}
+#profileImagePromptCard .profile-setting-save{margin-top:14px}
 `);
       style.textContent += `
 .nini-ins-native-host,.nini-ins-root{
@@ -13335,9 +13440,9 @@ startINSAutoPublishTimer();
   max-height:calc(100% - 28px - var(--ins-safe-top) - var(--ins-safe-bottom))!important;
 }
 
-/* v1.07.10: only Feed translation API uses a centered card.
-   Other settings remain exactly where 1.07.9 put them. */
-.nini-ins-root #profileFeedTranslationApiCard{
+/* v1.1.1: Feed translation API and Image settings use centered cards. */
+.nini-ins-root #profileFeedTranslationApiCard,
+.nini-ins-root #profileImagePromptCard{
   left:50%!important;
   right:auto!important;
   top:50%!important;
@@ -13351,7 +13456,8 @@ startINSAutoPublishTimer();
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
 }
-.nini-ins-root #profileFeedTranslationApiCard.show{
+.nini-ins-root #profileFeedTranslationApiCard.show,
+.nini-ins-root #profileImagePromptCard.show{
   transform:translate(-50%,-50%) scale(1)!important;
 }
 
@@ -13384,7 +13490,8 @@ startINSAutoPublishTimer();
   -webkit-backdrop-filter:blur(22px);
   backdrop-filter:blur(22px);
 }
-.nini-ins-root #profileFeedTranslationApiCard .profile-setting-head{
+.nini-ins-root #profileFeedTranslationApiCard .profile-setting-head,
+.nini-ins-root #profileImagePromptCard .profile-setting-head{
   position:sticky;
   top:-14px;
   z-index:4;
