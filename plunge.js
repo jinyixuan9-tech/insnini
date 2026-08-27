@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.07.8（首页译文强制新实例诊断版）
+// 版本：1.07.9（首页 Feed 正文按需翻译 API）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.07.8';
+  const VERSION = '1.07.9';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -201,8 +201,8 @@ const NAV_ASSET={
 
 const posts=[
 {id:'p_rec_food',type:'stranger',followed:false,author:'heyy.he',avatar:'H',sub:'为你推荐',mediaClass:'m1',mediaText:'浙江日常美食照片。',mediaDescription:'浙江的日常美食随拍，餐桌上摆着刚上桌的食物，光线自然，像普通用户随手记录的一顿饭。',mediaUrl:'https://imgbed.heliar.top/i/Y7dNw_BRdx54VeOS_Screenshot_20260826_214751.webp',likes:1284,comments:45,reposts:31,shares:66,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'今天本来只是想随便吃点，结果比想象中好吃很多。这种时候就会突然觉得，出门还是值得的。',captionTranslation:'',captionShort:'今天本来只是想随便吃点，结果比想象中好吃很多。这种时候就会突然觉得，出门还是值得的。',captionLong:'',translation:'',sourceLanguage:'zh',tags:['#daily','#food','#weekend']},
-{id:'p_rec_idol',type:'stranger',followed:false,author:'haru.archive',avatar:'H',sub:'为你推荐',mediaClass:'m2',mediaText:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaDescription:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaUrl:'',likes:26400,comments:1287,reposts:807,shares:1930,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'오늘도 고마워요. 끝나고 나니까 이제야 조금 실감 난다. 집 가자 💤',captionTranslation:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',captionShort:'오늘도 고마워요. 끝나고 나니까 이제야 조금 실감 난다. 집 가자 💤',captionLong:'',translation:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',sourceLanguage:'ko',tags:['#backstage','#today','#seoul']},
-{id:'p_rec_swiss',type:'stranger',followed:false,author:'mialater',avatar:'M',sub:'为你推荐',mediaClass:'m3',mediaText:'瑞士雪山旅行照片。',mediaDescription:'瑞士雪山旅行随拍，远处是高耸雪峰与开阔山谷，空气清透，光线干净，带有真实旅行记录感。',mediaUrl:'https://imgbed.heliar.top/i/Z_jJ7jv3jZq6bkaY_Screenshot_20260826_214453.webp',likes:6942,comments:236,reposts:142,shares:417,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'Woke up to this and forgot what I was about to complain about. Some places really do make everything feel quieter for a while.',captionTranslation:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',captionShort:'Woke up to this and forgot what I was about to complain about. Some places really do make everything feel quieter for a while.',captionLong:'',translation:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',sourceLanguage:'en',tags:['#switzerland','#mountains','#travel']}
+{id:'p_rec_idol',type:'stranger',followed:false,author:'haru.archive',avatar:'H',sub:'为你推荐',mediaClass:'m2',mediaText:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaDescription:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaUrl:'',likes:26400,comments:1287,reposts:807,shares:1930,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',captionTranslation:'',captionShort:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',captionLong:'',translation:'',sourceLanguage:'ko',tags:['#backstage','#today','#seoul']},
+{id:'p_rec_swiss',type:'stranger',followed:false,author:'mialater',avatar:'M',sub:'为你推荐',mediaClass:'m3',mediaText:'瑞士雪山旅行照片。',mediaDescription:'瑞士雪山旅行随拍，远处是高耸雪峰与开阔山谷，空气清透，光线干净，带有真实旅行记录感。',mediaUrl:'https://imgbed.heliar.top/i/Z_jJ7jv3jZq6bkaY_Screenshot_20260826_214453.webp',likes:6942,comments:236,reposts:142,shares:417,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',captionTranslation:'',captionShort:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',captionLong:'',translation:'',sourceLanguage:'en',tags:['#switzerland','#mountains','#travel']}
 ];
 
 posts.forEach((p,index)=>{
@@ -257,10 +257,47 @@ function feedCaptionPlainText(value=''){
   return String(holder.textContent||'').replace(/\s+/g,' ').trim();
 }
 
-/* v1.07.7 Home-only caption model.
-   Home renders one canonical original string, one same-call translation string
-   and one local open/closed flag. Legacy captionShort/captionLong/translation
-   rows are migrated here once; Reels, comments and DM do not use this model. */
+/* v1.07.9 Home-only caption model.
+   Home Feed now stores and renders a Chinese caption first. A separate,
+   user-configured OpenAI-compatible API is called only when the user taps
+   "显示原文" for the first time. The result is cached locally; Reels, Story,
+   comments, DM and the main Roche AI route do not use this model. */
+const HOME_FEED_TRANSLATION_API_STORAGE_KEY='nini-ins-feed-translation-api-v1';
+const HOME_FEED_TRANSLATION_CACHE_STORAGE_KEY='nini-ins-feed-translation-cache-v1';
+function readHomeFeedTranslationJSON(key,fallback){
+  try{
+    const value=JSON.parse(localStorage.getItem(key)||'null');
+    return value&&typeof value==='object'?value:fallback;
+  }catch(e){return fallback;}
+}
+let homeFeedTranslationApiSettings={
+  url:'',
+  apiKey:'',
+  model:'',
+  ...readHomeFeedTranslationJSON(HOME_FEED_TRANSLATION_API_STORAGE_KEY,{})
+};
+let homeFeedTranslationCache=readHomeFeedTranslationJSON(HOME_FEED_TRANSLATION_CACHE_STORAGE_KEY,{});
+const homeFeedTranslationRuntime=new Map();
+function persistHomeFeedTranslationApiSettings(){
+  try{localStorage.setItem(HOME_FEED_TRANSLATION_API_STORAGE_KEY,JSON.stringify(homeFeedTranslationApiSettings));}catch(e){}
+}
+function persistHomeFeedTranslationCache(){
+  try{localStorage.setItem(HOME_FEED_TRANSLATION_CACHE_STORAGE_KEY,JSON.stringify(homeFeedTranslationCache));}catch(e){}
+}
+function isHomeFeedChineseLanguage(value=''){
+  return /^(zh(?:[-_](?:cn|hans|tw|hk|hant))?|chinese|中文|汉语|漢語)$/i.test(String(value||'').trim());
+}
+function homeFeedLanguageLabel(value=''){
+  const key=String(value||'').trim().toLowerCase().replace('_','-');
+  const labels={
+    ko:'韩语',korean:'韩语','ko-kr':'韩语',ja:'日语',japanese:'日语','ja-jp':'日语',
+    en:'英语',english:'英语','en-us':'英语','en-gb':'英语',th:'泰语',thai:'泰语',
+    fr:'法语',french:'法语',de:'德语',german:'德语',es:'西班牙语',spanish:'西班牙语',
+    pt:'葡萄牙语',portuguese:'葡萄牙语',vi:'越南语',vietnamese:'越南语',
+    id:'印尼语',indonesian:'印尼语',ru:'俄语',russian:'俄语',it:'意大利语',italian:'意大利语'
+  };
+  return labels[key]||String(value||'外语').trim()||'外语';
+}
 function firstHomeFeedCaptionText(...values){
   for(const value of values){
     if((typeof value==='string'||typeof value==='number') && String(value).trim()){
@@ -270,44 +307,66 @@ function firstHomeFeedCaptionText(...values){
   return '';
 }
 function ensureHomeFeedCaptionModel(post){
-  if(!post)return {original:'',translation:'',open:false};
+  if(!post)return {chinese:'',originalText:'',sourceLanguage:'zh',showingOriginal:false,state:'idle'};
   const legacyOriginal=feedCaptionPlainText([post.captionShort||'',post.captionLong||''].filter(Boolean).join(' '));
-  const original=stripGeneratedCaptionHashtags(firstHomeFeedCaptionText(
-    post.captionOriginal,post.homeCaptionOriginal,legacyOriginal,
-    post.caption,post.textOriginal,post.text
-  )).trim();
-  const translation=firstHomeFeedCaptionText(
-    post.captionTranslation,post.homeCaptionTranslation,post.translation,
-    post.textTranslation,post.caption_translation
+  const sourceLanguage=firstHomeFeedCaptionText(post.feedSourceLanguage,post.sourceLanguage,post.language)||'zh';
+  const legacyTranslation=firstHomeFeedCaptionText(
+    post.captionTranslation,post.homeCaptionTranslation,post.translation,post.textTranslation,post.caption_translation
   );
-  const inlineSource=firstHomeFeedCaptionText(post.captionOriginal,post.homeCaptionOriginal,legacyOriginal,post.caption,post.textOriginal,post.text);
+  const legacyCaption=firstHomeFeedCaptionText(
+    post.captionOriginal,post.homeCaptionOriginal,legacyOriginal,post.caption,post.textOriginal,post.text
+  );
+  const chinese=stripGeneratedCaptionHashtags(firstHomeFeedCaptionText(
+    post.feedCaptionZh,
+    isLikelyChineseText(legacyTranslation)?legacyTranslation:'',
+    isHomeFeedChineseLanguage(sourceLanguage)?legacyCaption:'',
+    legacyCaption,
+    legacyTranslation
+  )).trim();
+  const cached=homeFeedTranslationCache[String(post.id||'')];
+  const originalText=stripGeneratedCaptionHashtags(firstHomeFeedCaptionText(
+    post.feedOriginalText,cached?.text
+  )).trim();
+  const inlineSource=firstHomeFeedCaptionText(post.feedCaptionZh,chinese,legacyCaption,legacyTranslation);
   const inlineTags=normalizeFeedPostTags((inlineSource.match(/(^|\s)#[^\s#]+/g)||[]).map(x=>String(x).trim()));
   const tags=normalizeFeedPostTags([...(post.tags||[]),...inlineTags]);
   if(!tags.length && post.type!=='user')tags.push('#daily');
 
-  post.captionOriginal=original;
-  post.captionTranslation=translation;
-  post.homeCaptionOriginal=original;
-  post.homeCaptionTranslation=translation;
-  post.homeTranslationOpen=translation?!!(post.homeTranslationOpen??post.translated):false;
+  post.feedCaptionZh=chinese;
+  post.feedOriginalText=originalText;
+  post.feedSourceLanguage=sourceLanguage;
+  post.feedShowingOriginal=!!originalText&&!!post.feedShowingOriginal;
   post.tags=tags;
 
   /* Keep legacy mirrors for profile cards, memory summaries and old saves. */
-  const parts=splitGeneratedCaptionText(original);
+  post.captionOriginal=chinese;
+  post.captionTranslation='';
+  post.homeCaptionOriginal=chinese;
+  post.homeCaptionTranslation='';
+  post.homeTranslationOpen=false;
+  const parts=splitGeneratedCaptionText(chinese);
   post.captionShort=parts.short?` ${escapeDMCardHTML(parts.short)}`:'';
   post.captionLong=parts.long?` ${escapeDMCardHTML(parts.long)}`:'';
-  post.translation=translation;
-  post.translated=post.homeTranslationOpen;
-  return {original,translation,open:post.homeTranslationOpen};
+  post.translation='';
+  post.translated=false;
+  const runtime=homeFeedTranslationRuntime.get(String(post.id||''))||{state:'idle',error:''};
+  return {chinese,originalText,sourceLanguage,showingOriginal:post.feedShowingOriginal,state:runtime.state||'idle',error:runtime.error||''};
 }
-function homeFeedCaptionHasTranslation(model){
-  return !!model?.translation && model.translation!==model.original;
+function shouldOfferHomeFeedOriginal(model){
+  return !!model?.chinese && !isHomeFeedChineseLanguage(model?.sourceLanguage);
+}
+function homeFeedCaptionDisplayText(model){
+  return model?.showingOriginal&&model?.originalText?model.originalText:model?.chinese||'';
+}
+function homeFeedOriginalButtonText(model){
+  const language=homeFeedLanguageLabel(model?.sourceLanguage);
+  if(model?.state==='loading')return `正在生成${language}原文…`;
+  if(model?.state==='error'&&!model?.originalText)return `原文加载失败 · 重试`;
+  return model?.showingOriginal?`翻译自${language} · 显示中文`:`翻译自${language} · 显示原文`;
 }
 
 function renderFeed(){
-  /* This marker is intentionally rendered by the same function that renders
-     translation buttons. Seeing it proves the fresh Home runtime is active. */
-  let html='<div data-ins-runtime-version="1.07.8" style="width:max-content;max-width:calc(100% - 28px);margin:7px auto;padding:3px 9px;border-radius:999px;background:#111;color:#fff;font-size:10px;font-weight:750;line-height:16px;letter-spacing:.1px">v1.07.8 · 首页译文新实例</div>';
+  let html='';
   posts.forEach((p,i)=>{
     const captionModel=ensureHomeFeedCaptionModel(p);
     html+=`
@@ -365,15 +424,14 @@ function renderFeed(){
 
         ${(()=>{
           const identity=getIdentityMeta(p.author);
-          const canTranslate=homeFeedCaptionHasTranslation(captionModel);
+          const canShowOriginal=shouldOfferHomeFeedOriginal(captionModel);
           const tagHtml=renderFeedPostTags(p);
           return `<div class="caption">
           <strong>${escapeDMCardHTML(identity.name)}</strong>
-          ${captionModel.original?`<span> ${escapeDMCardHTML(captionModel.original)}</span>`:''}
+          ${captionModel.chinese?`<span data-feed-caption-text="${escapeDMCardHTML(p.id)}"> ${escapeDMCardHTML(homeFeedCaptionDisplayText(captionModel))}</span>`:''}
           ${tagHtml}
         </div>
-        ${canTranslate?`<div class="translation-toggle" data-home-feed-translation="${escapeDMCardHTML(p.id)}">${captionModel.open?'收起翻译':'查看翻译'}</div>
-        <div class="translation ${captionModel.open?'show':''}" data-home-feed-translation-panel="${escapeDMCardHTML(p.id)}">${escapeDMCardHTML(captionModel.translation)}</div>`:''}`;
+        ${canShowOriginal?`<button class="feed-original-toggle" data-home-feed-original="${escapeDMCardHTML(p.id)}" type="button" ${captionModel.state==='loading'?'disabled':''}>${escapeDMCardHTML(homeFeedOriginalButtonText(captionModel))}</button>`:''}`;
         })()}
       </article>`;
   });
@@ -395,8 +453,8 @@ function handleFeedPrimaryControlTap(event){
   if(like){event.preventDefault();const i=Number(like.dataset.feedLikeIndex);if(Number.isInteger(i))toggleLike(i);return true;}
   const repost=target.closest?.('[data-feed-repost-index]');
   if(repost){event.preventDefault();const i=Number(repost.dataset.feedRepostIndex);if(Number.isInteger(i))toggleRepost(i);return true;}
-  const translation=target.closest?.('[data-home-feed-translation]');
-  if(translation){event.preventDefault();toggleHomeFeedTranslation(translation.dataset.homeFeedTranslation,translation.closest('.post'));return true;}
+  const translation=target.closest?.('[data-home-feed-original]');
+  if(translation){event.preventDefault();void toggleHomeFeedOriginal(translation.dataset.homeFeedOriginal,translation.closest('.post'));return true;}
   return false;
 }
 document.addEventListener('click',event=>{
@@ -498,18 +556,85 @@ function toggleRepost(i){
   if(typeof renderUserProfile==='function')renderUserProfile();
   popAfter(`#${posts[i].id} [data-role="repost"]`);
 }
-function toggleHomeFeedTranslation(postId,article){
+function normalizeHomeFeedTranslationEndpoint(url=''){
+  const clean=String(url||'').trim().replace(/\/+$/,'');
+  if(!clean)return '';
+  return /\/chat\/completions$/i.test(clean)?clean:clean+'/chat/completions';
+}
+function extractHomeFeedTranslationText(data){
+  let content=data?.choices?.[0]?.message?.content??data?.choices?.[0]?.text??data?.output_text??data?.text??data?.content??'';
+  if(Array.isArray(content))content=content.map(item=>typeof item==='string'?item:(item?.text||item?.content||'')).join('');
+  if(content&&typeof content==='object')content=content.text||content.content||'';
+  return String(content||'').trim().replace(/^```(?:text)?\s*/i,'').replace(/\s*```$/,'').replace(/^[“"]|[”"]$/g,'').trim();
+}
+async function callHomeFeedOriginalApi(chineseCaption,sourceLanguage){
+  const url=normalizeHomeFeedTranslationEndpoint(homeFeedTranslationApiSettings.url);
+  const apiKey=String(homeFeedTranslationApiSettings.apiKey||'').trim();
+  const model=String(homeFeedTranslationApiSettings.model||'').trim();
+  if(!url||!apiKey||!model)throw new Error('请先在侧边栏填写 Feed 正文翻译 API');
+  const language=homeFeedLanguageLabel(sourceLanguage);
+  const response=await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+    body:JSON.stringify({
+      model,
+      temperature:0.2,
+      stream:false,
+      messages:[
+        {role:'system',content:`你是社交媒体翻译器。把简体中文 Instagram 正文翻译成${language}。保持语气、换行和 emoji，自然像该语言用户本人发帖。只输出译文正文，不要解释、引号、标签或 Markdown。`},
+        {role:'user',content:String(chineseCaption||'')}
+      ]
+    })
+  });
+  let data={};
+  try{data=await response.json();}catch(e){}
+  if(!response.ok)throw new Error(String(data?.error?.message||data?.message||`接口状态 ${response.status}`));
+  const text=extractHomeFeedTranslationText(data);
+  if(!text)throw new Error('接口没有返回原文');
+  return text;
+}
+function refreshHomeFeedCaptionArticle(post,article){
+  const model=ensureHomeFeedCaptionModel(post);
+  const root=article||document.getElementById(String(post.id||''))||document;
+  const caption=root.querySelector?.(`[data-feed-caption-text="${String(post.id||'').replace(/"/g,'\\"')}"]`);
+  const button=root.querySelector?.(`[data-home-feed-original="${String(post.id||'').replace(/"/g,'\\"')}"]`);
+  if(caption)caption.textContent=' '+homeFeedCaptionDisplayText(model);
+  if(button){
+    button.textContent=homeFeedOriginalButtonText(model);
+    button.disabled=model.state==='loading';
+  }
+}
+async function toggleHomeFeedOriginal(postId,article){
   const post=posts.find(row=>String(row?.id||'')===String(postId||''));
   if(!post)return;
   const model=ensureHomeFeedCaptionModel(post);
-  if(!homeFeedCaptionHasTranslation(model))return;
-  post.homeTranslationOpen=!model.open;
-  post.translated=post.homeTranslationOpen;
-  const root=article||document;
-  const button=root.querySelector?.('[data-home-feed-translation]');
-  const panel=root.querySelector?.('[data-home-feed-translation-panel]');
-  if(button)button.textContent=post.homeTranslationOpen?'收起翻译':'查看翻译';
-  if(panel)panel.classList.toggle('show',post.homeTranslationOpen);
+  if(!shouldOfferHomeFeedOriginal(model))return;
+  if(model.originalText){
+    post.feedShowingOriginal=!model.showingOriginal;
+    refreshHomeFeedCaptionArticle(post,article);
+    return;
+  }
+  if(!String(homeFeedTranslationApiSettings.url||'').trim()||!String(homeFeedTranslationApiSettings.apiKey||'').trim()||!String(homeFeedTranslationApiSettings.model||'').trim()){
+    openHomeFeedTranslationApiSettings();
+    alert('请先填写 Feed 正文翻译 API 的 URL、Key 和模型');
+    return;
+  }
+  const key=String(post.id||'');
+  if(homeFeedTranslationRuntime.get(key)?.state==='loading')return;
+  homeFeedTranslationRuntime.set(key,{state:'loading',error:''});
+  refreshHomeFeedCaptionArticle(post,article);
+  try{
+    const text=await callHomeFeedOriginalApi(model.chinese,model.sourceLanguage);
+    post.feedOriginalText=text;
+    post.feedShowingOriginal=true;
+    homeFeedTranslationCache[key]={text,sourceLanguage:model.sourceLanguage,updatedAt:Date.now()};
+    persistHomeFeedTranslationCache();
+    homeFeedTranslationRuntime.set(key,{state:'idle',error:''});
+  }catch(error){
+    homeFeedTranslationRuntime.set(key,{state:'error',error:String(error?.message||'翻译失败')});
+    alert('Feed 原文翻译失败：'+String(error?.message||'未知错误'));
+  }
+  refreshHomeFeedCaptionArticle(post,article);
 }
 
 
@@ -747,8 +872,7 @@ function setGlobalTranslationEnabled(enabled){
   reelsV15State.globalTranslation=on;
   posts.forEach(post=>{
     const model=ensureHomeFeedCaptionModel(post);
-    post.homeTranslationOpen=on && homeFeedCaptionHasTranslation(model);
-    post.translated=post.homeTranslationOpen;
+    post.feedShowingOriginal=on && !!model.originalText;
   });
   reelsV15State.items.forEach(item=>{
     item.translated=on && shouldOfferTranslation(item.caption,item.captionTranslation);
@@ -2474,7 +2598,7 @@ function backRoute(){
 function clearProfileInteractionOverlays(){
   [
     'profileDrawerDim','profileDrawer','profileEditCard','highlightEditorCard',
-    'profileAtmosphereCard','profileImagePromptCard','profileSubApiCard','memorySystemCard',
+    'profileAtmosphereCard','profileImagePromptCard','profileSubApiCard','profileFeedTranslationApiCard','memorySystemCard',
     'charDrawerDim','charDrawer','charHighlightEditor','charProfileEditor'
   ].forEach(id=>document.getElementById(id)?.classList.remove('show'));
 }
@@ -2621,7 +2745,7 @@ const INS_CONTENT_GENERATION_CONTRACT = {
   feed:{
     media:'image_or_video_description',
     caption:'required',
-    translation:'same_call_separate_field_when_foreign',
+    translation:'on_demand_separate_user_api_not_in_generation',
     metrics:'likes_comments_reposts_shares_in_same_result',
     initialComments:'same_call_optional_batch_from_relationship_eligible_actors_and_strangers'
   },
@@ -2692,7 +2816,7 @@ const INS_STRANGER_IDENTITY_LANGUAGE_CONTRACT = `【陌生账号身份 / ID / �
 
 const INS_MEDIA_LANGUAGE_CONTRACT = `【IG / Reels 字段语言硬规则】
 - 图片 mediaDescription 与视频 videoDescription：一律使用中文描述画面/镜头内容。即使发帖人是韩国、日本、美国、泰国或其他地区用户，视觉描述字段也不要跟随发帖语言。
-- 生成陌生人时，handle（IG ID）、displayName（昵称）与 captionOriginal（文案）必须与该账号所属国家/地区、语言及当地互联网命名习惯一致。handle 可按当地常见 IG 习惯使用罗马字/ASCII 变体；不要因为系统语言是中文就把陌生人的昵称、ID 或文案统一写成中文。
+- 生成陌生人时，handle（IG ID）与 displayName（昵称）必须与该账号所属国家/地区及当地互联网命名习惯一致。Reels 的 captionOriginal 继续使用账号自然语言；仅首页 Feed 改为返回简体中文 captionZh，同时用 sourceLanguage 标记该账号原本会使用的语言，原语言正文稍后由独立 Feed 翻译 API 按需生成。
 - location：只用英文，统一使用 “City·Country / Place·Country” 风格，中间使用 ·。示例：Seoul·Korea、Osaka·Japan、Taiwan·China、Hong Kong·China、Macau·China。不要输出中文地点。
 - tags / #hashtags：只用英文或英文数字组合；不要生成韩文、日文、中文、泰文等非英文 tag。
 - 评论者语言与正文语言必须独立决定。评论区是全球平台受众，不允许因为正文是韩语/日语/英语/中文就把整批评论都生成成同一种语言。
@@ -2772,7 +2896,7 @@ Visual media descriptions are always written in Chinese. Locations and tags are 
 
 const INS_FEED_COMPACT_SURFACE_PROMPT_EN = `Instagram Feed task.
 Generate one natural everyday post for each selected actor, not a plot beat or a performance for the user.
-Prefer a natural 2-4 sentence Feed caption with a naturally varied length; do not write to a preview or collapse threshold. If captionOriginal is non-Chinese, captionTranslation is REQUIRED and must contain a Chinese translation in the same item and same response. Feed image count is 1-4. When request.extra.requestedMediaCounts is present, follow that plan exactly by output item index. Return mediaItems with exactly that many objects for each post; every media item must have its own distinct mediaDescription and the descriptions must describe different shots/details while still belonging to the same post. Every mediaDescription MUST be Chinese. Single-image posts are normal and should remain possible.
+For this Home Feed task, override the general bilingual-caption rule: return the visible caption only in Simplified Chinese as captionZh. Also return sourceLanguage for the language this account would naturally use (for example ko, ja, en or zh). Do NOT return captionOriginal or captionTranslation for Feed; original-language text is created later by a separate on-demand API. Prefer a natural 2-4 sentence Feed caption with a naturally varied length; do not write to a preview or collapse threshold. Feed image count is 1-4. When request.extra.requestedMediaCounts is present, follow that plan exactly by output item index. Return mediaItems with exactly that many objects for each post; every media item must have its own distinct mediaDescription and the descriptions must describe different shots/details while still belonging to the same post. Every mediaDescription MUST be Chinese. Single-image posts are normal and should remain possible.
 If a location is returned, it MUST be English in City·Country / Place·Country format with the middle dot ·. All tags MUST be English.
 Return plausible positive aggregate engagement metrics: likes, comments, reposts and shares.
 When includeInitialComments=true, return exactly the requested number of actual initialComments. These are visible comments and are separate from the aggregate comments metric.
@@ -2814,8 +2938,8 @@ Do not turn the guestbook into a DM conversation. Keep distance, tone and famili
 For non-Chinese text, provide separate Chinese textTranslation. Return JSON only.`;
 
 const INS_SURFACE_PROMPTS = Object.freeze({
-  home_strangers:'首页陌生推荐：来源全球化但不设硬配额；默认提高日本、韩国、英语地区以及繁体中文地区（香港/澳门/台湾）账号的出现权重。账号有独立生活，不围绕 user。内容可以平淡、低信息量；陌生人身份与内容应自洽。正文通常 2–4 句，长短自然，不需要为了预览或折叠刻意控制长度。每条陌生人 IG 动态必须同时返回 5 条可见 initialComments。图片描述只用中文；昵称+ID+文案遵循账号所属地区语言与当地网感；非中文正文必须返回中文 captionTranslation；地点用英文 City·Country / Place·Country；tag 只用英文；5 条评论至少 2 种语言且至少 1 条不同于正文语言。',
-  feed_generate:'Feed：以自然生活流为主，不要求每条有剧情、金句或主题。正文通常写成自然的 2–4 句，长短自然，不需要为了预览或折叠刻意控制长度。图片描述固定中文；文案跟随账号自然语言；非中文正文必须同时返回中文 captionTranslation；地点和 tag 固定英文。若一次生成多个账号，整体控制网感浓度；5 条评论至少 2 种语言且不能全跟正文同语种。',
+  home_strangers:'首页陌生推荐：来源全球化但不设硬配额；默认提高日本、韩国、英语地区以及繁体中文地区（香港/澳门/台湾）账号的出现权重。账号有独立生活，不围绕 user。内容可以平淡、低信息量；陌生人身份与内容应自洽。正文通常 2–4 句，长短自然。首页 Feed 只返回简体中文 captionZh，并用 sourceLanguage 标记账号原本会使用的语言；不要生成 captionOriginal 或 captionTranslation。每条陌生人 IG 动态必须同时返回 5 条可见 initialComments。图片描述只用中文；昵称和 ID 遵循账号所属地区与当地网感；地点用英文 City·Country / Place·Country；tag 只用英文；5 条评论至少 2 种语言且至少 1 条不同于正文来源语言。',
+  feed_generate:'Feed：以自然生活流为主，不要求每条有剧情、金句或主题。正文通常写成自然的 2–4 句，长短自然。首页 Feed 只返回简体中文 captionZh，并用 sourceLanguage 标记账号原本会使用的语言；不要生成 captionOriginal 或 captionTranslation。图片描述固定中文；地点和 tag 固定英文。若一次生成多个账号，整体控制网感浓度；5 条评论至少 2 种语言且不能全跟正文来源语言同语种。',
   story_generate:'Story：轻量、即时、随手。一次 1–4 个 item，共用一个 caption；没有公开评论线程，进一步交流转 DM。',
   reels_generate:'Reels：更偏视觉和短视频片段，可以有城市、旅行、兴趣、日常、搞笑等内容；视频描述固定中文，文案跟随账号自然语言，地点和 tag 固定英文；评论语言独立于正文，不得整批跟随正文语种。',
   public_comment_batch:'公开评论：一批固定生成 5 条实际评论。评论应短、杂、关系和社交距离不同；标准 5 条至少 2 种语言，并至少 1 条与正文主语言不同。评论者语言独立抽样，不得整批复制发帖人的语言。允许问号、简单附和、emoji 或不玩梗。不要五个人都夸人、都长篇、都热情。',
@@ -7590,9 +7714,10 @@ function getGeneratedItems(data){
   return [];
 }
 
-/* v1.07.7 Home Feed generation reader.
-   Validation and post creation consume this exact canonical pair. It does not
-   reuse the generic bilingual helpers from Reels, comments, Story or DM. */
+/* v1.07.9 Home Feed generation reader.
+   The main Feed generation call returns a Simplified-Chinese caption plus the
+   intended source language. Original-language text is created later, only on
+   demand, through the separately configured Feed translation API. */
 function normalizeHomeFeedGeneratedCaption(row={}){
   const captionObject=row?.caption && typeof row.caption==='object'?row.caption:{};
   const translationObject=row?.translation && typeof row.translation==='object'?row.translation:{};
@@ -7604,48 +7729,27 @@ function normalizeHomeFeedGeneratedCaption(row={}){
     }
     return '';
   };
-  const original=firstText(
+  const chinese=firstText(
+      row?.captionZh,row?.caption_zh,row?.translationZh,row?.translation_zh,
+      row?.chineseTranslation,row?.textTranslation,row?.text_translation,translationValue,
+      captionObject?.translation,captionObject?.zh,translationObject?.zh,
+      translationObject?.chinese,translationObject?.text,
       row?.captionOriginal,row?.caption_original,row?.originalCaption,row?.original_caption,
       row?.textOriginal,row?.text_original,captionValue,row?.text,
       captionObject?.original,captionObject?.text,captionObject?.source
     );
-  const translation=firstText(
-      row?.captionTranslation,row?.caption_translation,row?.translatedCaption,row?.translated_caption,
-      row?.captionZh,row?.caption_zh,row?.translationZh,row?.translation_zh,
-      row?.chineseTranslation,row?.textTranslation,row?.text_translation,translationValue,
-      captionObject?.translation,captionObject?.zh,translationObject?.zh,
-      translationObject?.chinese,translationObject?.text
-    );
   return {
-    rawCaptionOriginal:original,
-    captionOriginal:stripGeneratedCaptionHashtags(original).trim(),
-    captionTranslation:translation,
-    sourceLanguage:firstText(row?.sourceLanguage,row?.source_language,row?.language)
+    rawCaptionOriginal:chinese,
+    captionOriginal:stripGeneratedCaptionHashtags(chinese).trim(),
+    captionTranslation:'',
+    sourceLanguage:firstText(row?.sourceLanguage,row?.source_language,row?.language,row?.actor?.language,row?.actor?.sourceLanguage)
   };
 }
 
-function generatedFeedRowNeedsTranslation(row={}){
-  const caption=normalizeHomeFeedGeneratedCaption(row);
-  if(!caption.captionOriginal)return false;
-  const declaredLanguage=String(caption.sourceLanguage||'').trim().toLowerCase();
-  const declaredForeign=!!declaredLanguage && !/^(zh|zh-cn|zh-tw|zh-hk|chinese|中文)/.test(declaredLanguage);
-  const textLooksForeign=!isLikelyChineseText(caption.captionOriginal);
-  return (declaredForeign||textLooksForeign) && (!caption.captionTranslation||!isLikelyChineseText(caption.captionTranslation));
-}
+function generatedFeedRowNeedsTranslation(){return false;}
 
 async function callNiniINSFeedSinglePass(task,payload={}){
-  const result=await callNiniINSAI(task,payload);
-  if(!result.ok)return result;
-  const items=getGeneratedItems(result.data);
-  const missing=items.filter(generatedFeedRowNeedsTranslation).length;
-  if(missing){
-    return {
-      ok:false,
-      reason:`本次 AI 返回中有 ${missing} 条外语正文漏掉中文翻译，已停止整批发布；没有追加 API 调用`,
-      request:result.request
-    };
-  }
-  return result;
+  return callNiniINSAI(task,payload);
 }
 
 function makeGeneratedReelItem(row,actorId,kind='char',index=0){
@@ -7834,20 +7938,18 @@ function normalizeGeneratedMediaItems(row={}){
 
 function makeGeneratedFeedPost(row,actorId,type,index=0){
   const caption=normalizeHomeFeedGeneratedCaption(row);
+  const sourceLanguage=String(caption.sourceLanguage||row?.actor?.language||publicIdentityRegistry?.[actorId]?.language||'zh').trim()||'zh';
   const metrics=row?.metrics||{};
   const explicitTags=normalizeGeneratedEnglishTags(row?.tags||[]);
   const inlineTags=normalizeGeneratedEnglishTags((String(caption.rawCaptionOriginal||'').match(/(^|\s)#[^\s#]+/g)||[]).map(tag=>String(tag||'').trim()));
   const tags=[...new Set([...explicitTags,...inlineTags])];
   if(!tags.length)tags.push('#daily');
   const cleanCaption=caption.captionOriginal;
-  if(generatedFeedRowNeedsTranslation(row)){
-    throw new Error('外语首页正文缺少中文翻译，已停止发布');
-  }
   const parts=splitGeneratedCaptionText(cleanCaption);
   const initialComments=Array.isArray(row?.initialComments)?row.initialComments:(Array.isArray(row?.comments)?row.comments:[]);
   const id=`feed_ai_${Date.now()}_${index}_${Math.random().toString(36).slice(2,5)}`;
   const actorRegion=String(row?.actor?.region||row?.region||row?.country||'').trim();
-  const locationLabel=normalizeGeneratedLocationLabel(row?.location||row?.actor?.location||'',caption.sourceLanguage,cleanCaption,actorRegion);
+  const locationLabel=normalizeGeneratedLocationLabel(row?.location||row?.actor?.location||'',sourceLanguage,cleanCaption,actorRegion);
   let mediaItems=normalizeGeneratedMediaItems(row);
   mediaItems=typeof resolveGeneratedMediaItemsWithAlbum==='function'?resolveGeneratedMediaItemsWithAlbum(actorId,mediaItems):mediaItems;
   const primaryMedia=mediaItems[0]||{url:'',desc:'生活随手记录',source:'description'};
@@ -7866,21 +7968,25 @@ function makeGeneratedFeedPost(row,actorId,type,index=0){
     reposts:normalizeGeneratedMetric(metrics.reposts??row?.reposts,1,42),
     shares:normalizeGeneratedMetric(metrics.shares??row?.shares,1,78),
     liked:false,reposted:false,expanded:false,translated:false,homeTranslationOpen:false,
+    feedCaptionZh:cleanCaption,
+    feedOriginalText:'',
+    feedSourceLanguage:sourceLanguage,
+    feedShowingOriginal:false,
     captionOriginal:cleanCaption,
-    captionTranslation:caption.captionTranslation,
+    captionTranslation:'',
     homeCaptionOriginal:cleanCaption,
-    homeCaptionTranslation:caption.captionTranslation,
+    homeCaptionTranslation:'',
     captionShort:parts.short?` ${escapeDMCardHTML(parts.short)}`:'',
     captionLong:parts.long?` ${escapeDMCardHTML(parts.long)}`:'',
     tags,
-    translation:caption.captionTranslation,sourceLanguage:caption.sourceLanguage,location:locationLabel,generated:true
+    translation:'',sourceLanguage,location:locationLabel,generated:true
   };
   ensurePostFallbackDeck(post,posts.length+index);
   return post;
 }
 function recordGeneratedFeedPublish(actorId,post){
   if(!actorId||!post||typeof recordSocialEvent!=='function')return;
-  const caption=ensureHomeFeedCaptionModel(post).original;
+  const caption=ensureHomeFeedCaptionModel(post).chinese;
   const media=String(post.mediaDescription||post.mediaText||'').trim();
   const mentionMeta=detectFormalActorMentions(`${caption} ${media}`);
   if(!isFormalSocialActor(actorId) && !mentionMeta.length)return;
@@ -8416,7 +8522,8 @@ function renderPostEditAssetOptions(post){
 function openPostEditor(){
   const post=posts[activePostMenuIndex];
   if(!post)return;
-  postEditCaption.value=[[post.captionShort||'',post.captionLong||''].join('').replace(/<[^>]+>/g,'').trim(),normalizeFeedPostTags(post.tags||[]).join(' ')].filter(Boolean).join(' ');
+  const feedCaption=ensureHomeFeedCaptionModel(post).chinese;
+  postEditCaption.value=[feedCaption,normalizeFeedPostTags(post.tags||[]).join(' ')].filter(Boolean).join(' ');
   const editableStranger=!!(post.generatedStranger && post.type==='stranger');
   postEditStrangerIdentity?.classList.toggle('show',editableStranger);
   if(editableStranger){const meta=getIdentityMeta(post.author);if(postEditDisplayName)postEditDisplayName.value=meta.name||post.author;if(postEditHandle)postEditHandle.value=meta.handle||post.author;if(postEditLocation)postEditLocation.value=post.location||post.sub||'';}
@@ -8477,12 +8584,21 @@ function saveActivePostEdit(){
   commitPostEditCurrentDescription(post);
   const parsedCaption=splitFeedEditorCaptionAndTags(caption);
   const canonicalCaption=stripGeneratedCaptionHashtags(caption).trim();
+  const captionChanged=canonicalCaption!==String(post.feedCaptionZh||post.captionOriginal||'').trim();
+  post.feedCaptionZh=canonicalCaption;
   post.captionOriginal=canonicalCaption;
   post.homeCaptionOriginal=canonicalCaption;
   post.captionShort=parsedCaption.parts.short?' '+escapeDMCardHTML(parsedCaption.parts.short):'';
   post.captionLong=parsedCaption.parts.long?' '+escapeDMCardHTML(parsedCaption.parts.long):'';
   post.tags=parsedCaption.tags;
   post.expanded=false;
+  if(captionChanged){
+    post.feedOriginalText='';
+    post.feedShowingOriginal=false;
+    delete homeFeedTranslationCache[String(post.id||'')];
+    homeFeedTranslationRuntime.delete(String(post.id||''));
+    persistHomeFeedTranslationCache();
+  }
   if(mediaDesc)post.mediaDescription=mediaDesc;
   if((post.mediaType||'image')==='image'){
     if(post.mediaSource==='album' && post.linkedAlbumId){
@@ -9242,6 +9358,87 @@ function saveINSSubApiPreset(){
   renderINSSubApiSettings();
 }
 
+function isHomeFeedTranslationApiConfigured(){
+  return !!String(homeFeedTranslationApiSettings.url||'').trim()
+    && !!String(homeFeedTranslationApiSettings.apiKey||'').trim()
+    && !!String(homeFeedTranslationApiSettings.model||'').trim();
+}
+function updateHomeFeedTranslationApiDrawerLabel(){
+  const label=document.getElementById('drawerFeedTranslationApiLabel');
+  if(label)label.textContent=isHomeFeedTranslationApiConfigured()
+    ? `已配置 · ${String(homeFeedTranslationApiSettings.model||'')}`
+    : '未配置 · 仅首页显示原文时使用';
+}
+function installHomeFeedTranslationApiUI(){
+  const subApiButton=document.getElementById('drawerSubApiBtn');
+  if(subApiButton&&!document.getElementById('drawerFeedTranslationApiBtn')){
+    subApiButton.insertAdjacentHTML('afterend',`
+      <button class="drawer-item" id="drawerFeedTranslationApiBtn" type="button">
+        <span class="drawer-icon">🌐</span>
+        <span class="drawer-copy"><strong>Feed 正文翻译 API</strong><span id="drawerFeedTranslationApiLabel">未配置 · 仅首页显示原文时使用</span></span>
+        <span class="drawer-arrow">›</span>
+      </button>`);
+  }
+  const phone=document.querySelector('.phone');
+  if(phone&&!document.getElementById('profileFeedTranslationApiCard')){
+    phone.insertAdjacentHTML('beforeend',`
+      <section class="profile-setting-card" id="profileFeedTranslationApiCard">
+        <div class="profile-setting-head">
+          <strong>Feed 正文翻译 API</strong>
+          <button class="profile-setting-close" id="profileFeedTranslationApiClose" type="button">×</button>
+        </div>
+        <div class="profile-setting-block">
+          <div class="profile-setting-notebox">只在首页 Feed 点「显示原文」且该动态尚无缓存时调用一次。要求接口兼容 OpenAI <b>/chat/completions</b>；不会影响主生成 API、Reels、Story、评论或 DM。</div>
+        </div>
+        <div class="profile-setting-block">
+          <label class="profile-setting-label" for="feedTranslationApiUrl">Base URL 或完整接口 URL</label>
+          <input class="profile-setting-input" id="feedTranslationApiUrl" inputmode="url" placeholder="例如 https://api.example.com/v1"/>
+        </div>
+        <div class="profile-setting-block">
+          <label class="profile-setting-label" for="feedTranslationApiKey">API Key</label>
+          <input class="profile-setting-input" id="feedTranslationApiKey" autocomplete="off" placeholder="填写翻译接口 Key" type="password"/>
+        </div>
+        <div class="profile-setting-block">
+          <label class="profile-setting-label" for="feedTranslationApiModel">模型</label>
+          <input class="profile-setting-input" id="feedTranslationApiModel" placeholder="例如 gpt-4o-mini"/>
+        </div>
+        <div class="profile-setting-notebox">配置只保存在当前设备本地。插件不会自动测试接口，也不会失败后自动重试；每次点「重试」才会再次请求。</div>
+        <button class="profile-setting-save" id="profileFeedTranslationApiSave" type="button">保存 Feed 翻译 API</button>
+      </section>`);
+  }
+  updateHomeFeedTranslationApiDrawerLabel();
+}
+function openHomeFeedTranslationApiSettings(){
+  installHomeFeedTranslationApiUI();
+  closeProfileDrawer();
+  document.getElementById('profileDrawerDim')?.classList.add('show');
+  const card=document.getElementById('profileFeedTranslationApiCard');
+  card?.classList.add('show');
+  if(card)card.scrollTop=0;
+  const url=document.getElementById('feedTranslationApiUrl');
+  const key=document.getElementById('feedTranslationApiKey');
+  const model=document.getElementById('feedTranslationApiModel');
+  if(url)url.value=homeFeedTranslationApiSettings.url||'';
+  if(key)key.value=homeFeedTranslationApiSettings.apiKey||'';
+  if(model)model.value=homeFeedTranslationApiSettings.model||'';
+}
+function closeHomeFeedTranslationApiSettings(){
+  document.getElementById('profileFeedTranslationApiCard')?.classList.remove('show');
+  document.getElementById('profileDrawerDim')?.classList.remove('show');
+}
+function saveHomeFeedTranslationApiSettings(){
+  const url=String(document.getElementById('feedTranslationApiUrl')?.value||'').trim().replace(/\/+$/,'');
+  const apiKey=String(document.getElementById('feedTranslationApiKey')?.value||'').trim();
+  const model=String(document.getElementById('feedTranslationApiModel')?.value||'').trim();
+  if(!url||!apiKey||!model){alert('请完整填写 URL、API Key 和模型');return;}
+  if(!/^https?:\/\//i.test(url)){alert('URL 需要以 http:// 或 https:// 开头');return;}
+  homeFeedTranslationApiSettings={url,apiKey,model};
+  persistHomeFeedTranslationApiSettings();
+  updateHomeFeedTranslationApiDrawerLabel();
+  closeHomeFeedTranslationApiSettings();
+  alert('Feed 正文翻译 API 已保存');
+}
+
 function normalizeINSUserBindingPersona(raw={}){
   const id=String(raw?.id||raw?.personaId||raw?.handle||raw?.name||'').trim();
   const handle=String(raw?.handle||raw?.username||raw?.id||raw?.name||'').replace(/^@/,'').trim();
@@ -9422,6 +9619,7 @@ async function clearAllNiniINSData(){
   try{await window.NiniINSHost?.closeAfterReset?.();}catch(e){}
 }
 
+installHomeFeedTranslationApiUI();
 document.getElementById('userProfileMenuBtn')?.addEventListener('click', openProfileDrawer);
 document.getElementById('profileDrawerClose')?.addEventListener('click', closeProfileDrawer);
 document.getElementById('profileDrawerDim')?.addEventListener('click', ()=>{
@@ -9431,6 +9629,7 @@ document.getElementById('profileDrawerDim')?.addEventListener('click', ()=>{
   closeAtmosphereSettings();
   closeImagePromptSettings();
   closeSubApiSettings();
+  closeHomeFeedTranslationApiSettings();
   closeINSUserIdentityBindingSheet();
   closeINSInterfaceSizePanel();
 });
@@ -9462,6 +9661,7 @@ document.getElementById('drawerBindUserIdentityBtn')?.addEventListener('click', 
 document.getElementById('drawerAtmosphereBtn')?.addEventListener('click', openAtmosphereSettings);
 document.getElementById('drawerImagePromptBtn')?.addEventListener('click', openImagePromptSettings);
 document.getElementById('drawerSubApiBtn')?.addEventListener('click', openSubApiSettings);
+document.getElementById('drawerFeedTranslationApiBtn')?.addEventListener('click', openHomeFeedTranslationApiSettings);
 document.getElementById('drawerClearImageCacheBtn')?.addEventListener('click',()=>{closeProfileDrawer();void clearNiniINSImageCache();});
 document.getElementById('drawerClearDataBtn')?.addEventListener('click',()=>{closeProfileDrawer();void clearAllNiniINSData();});
 document.getElementById('profileAtmosphereClose')?.addEventListener('click', closeAtmosphereSettings);
@@ -9486,6 +9686,8 @@ document.getElementById('profileImagePromptSave')?.addEventListener('click',()=>
 });
 document.getElementById('profileSubApiClose')?.addEventListener('click', closeSubApiSettings);
 document.getElementById('profileSubApiSave')?.addEventListener('click', saveINSSubApiPreset);
+document.getElementById('profileFeedTranslationApiClose')?.addEventListener('click', closeHomeFeedTranslationApiSettings);
+document.getElementById('profileFeedTranslationApiSave')?.addEventListener('click', saveHomeFeedTranslationApiSettings);
 document.getElementById('insSubApiRefreshModels')?.addEventListener('click', refreshINSSubApiModels);
 document.getElementById('insSubApiPresetList')?.addEventListener('click',(event)=>{
   const enableBtn=event.target.closest('[data-ins-subapi-enable]');
@@ -11324,7 +11526,7 @@ startINSAutoPublishTimer();
 
   function taskOutputInstruction(task) {
     if (task === 'home_strangers') {
-      return 'Return JSON only. No Markdown or explanation. Return exactly {"items":[{"actor":{"handle":"...","displayName":"...","language":"...","region":"...","bio":"..."},"mediaItems":[{"mediaDescription":"中文图片描述","mediaUrl":""}],"captionOriginal":"账号自然语言正文","captionTranslation":"非中文正文对应的简体中文译文","sourceLanguage":"...","location":"Tokyo·Japan","tags":["#daily"],"metrics":{"likes":123,"comments":18,"reposts":4,"shares":7},"initialComments":[{"actorId":"","author":"string_handle","displayName":"Display Name","textOriginal":"...","textTranslation":"","sourceLanguage":"...","replyToActorId":""}]}]}. Every item MUST contain both captionOriginal and captionTranslation keys. When captionOriginal is Japanese, Korean, English or any other non-Chinese language, captionTranslation MUST be a faithful natural Simplified Chinese translation in this same response and MUST NOT be empty. Only genuinely Chinese captionOriginal may use an empty captionTranslation. Never put the translation inside captionOriginal. mediaDescription is always Chinese; location and tags are English. Follow request.extra.requestedMediaCounts exactly and return exactly the requested five initialComments per post.';
+      return 'Return JSON only. No Markdown or explanation. Return exactly {"items":[{"actor":{"handle":"...","displayName":"...","language":"...","region":"...","bio":"..."},"mediaItems":[{"mediaDescription":"中文图片描述","mediaUrl":""}],"captionZh":"简体中文正文","sourceLanguage":"ko","location":"Tokyo·Japan","tags":["#daily"],"metrics":{"likes":123,"comments":18,"reposts":4,"shares":7},"initialComments":[{"actorId":"","author":"string_handle","displayName":"Display Name","textOriginal":"...","textTranslation":"","sourceLanguage":"...","replyToActorId":""}]}]}. For Home Feed, captionZh MUST be natural Simplified Chinese and sourceLanguage marks the language the account would naturally post in. Do not return captionOriginal or captionTranslation; original-language text is handled by a separate on-demand API. mediaDescription is always Chinese; location and tags are English. Follow request.extra.requestedMediaCounts exactly and return exactly the requested five initialComments per post.';
     }
     if (task === 'reels_generate') {
       return 'Return JSON only. No Markdown or explanation. Schema: {"items":[{"actorId":"...","actor":{"handle":"...","displayName":"...","language":"...","region":"...","bio":"..."},"author":"...","videoDescription":"中文视频画面描述","captionOriginal":"...","captionTranslation":"","sourceLanguage":"...","location":"Seoul·Korea","tags":["#daily"],"metrics":{"likes":0,"comments":0,"reposts":0,"shares":0},"initialComments":[{"actorId":"","author":"string_handle","displayName":"Display Name","textOriginal":"...","textTranslation":"","sourceLanguage":"...","replyToActorId":""}]}]}.' +
@@ -11334,8 +11536,8 @@ startINSAutoPublishTimer();
         ' If extra.includeInitialComments=true, return exactly extra.initialCommentCount actual initialComments and make metrics.comments at least that count. Never include the current user/persona in initialComments. For the standard 5-comment batch use at least 2 sourceLanguage values and at least one comment language different from the Reel caption language; do not mirror the post language across the whole comment section.';
     }
     if (task === 'feed_generate') {
-      return 'Return JSON only. No Markdown or explanation. Schema: {"items":[{"actorId":"...","author":"...","mediaType":"image","mediaItems":[{"mediaDescription":"中文图片描述","mediaUrl":"","albumCategory":"portrait_selfie","albumTags":["夏季","甜品店"],"albumEraId":""}],"captionOriginal":"...","captionTranslation":"","sourceLanguage":"...","location":"Seoul·Korea","tags":["#daily"],"metrics":{"likes":123,"comments":18,"reposts":4,"shares":7},"initialComments":[{"actorId":"","author":"citycat_82","displayName":"City Cat","textOriginal":"...","textTranslation":"","sourceLanguage":"en","replyToActorId":""}]}]}.' +
-        ' Every mediaDescription MUST be Chinese. For image media, when the supplied preference/albumMatcher asks for album planning, also return albumCategory and Chinese albumTags for every slot; albumEraId is only for portrait slots when era matching is active. If extra.freeMediaPlan=true, freely choose 1-4 media items based on the post itself; do not force a human/scene mix or a fixed count. Keep captionOriginal in the actor\'s natural language. Prefer 2-4 natural sentences with a naturally varied length; do not write to a preview or collapse threshold. If non-Chinese, captionTranslation is REQUIRED and must contain Chinese; if Chinese, captionTranslation must be empty.' +
+      return 'Return JSON only. No Markdown or explanation. Schema: {"items":[{"actorId":"...","author":"...","mediaType":"image","mediaItems":[{"mediaDescription":"中文图片描述","mediaUrl":"","albumCategory":"portrait_selfie","albumTags":["夏季","甜品店"],"albumEraId":""}],"captionZh":"简体中文正文","sourceLanguage":"ko","location":"Seoul·Korea","tags":["#daily"],"metrics":{"likes":123,"comments":18,"reposts":4,"shares":7},"initialComments":[{"actorId":"","author":"citycat_82","displayName":"City Cat","textOriginal":"...","textTranslation":"","sourceLanguage":"en","replyToActorId":""}]}]}.' +
+        ' Every mediaDescription MUST be Chinese. For image media, when the supplied preference/albumMatcher asks for album planning, also return albumCategory and Chinese albumTags for every slot; albumEraId is only for portrait slots when era matching is active. If extra.freeMediaPlan=true, freely choose 1-4 media items based on the post itself; do not force a human/scene mix or a fixed count. For Home Feed return only natural Simplified-Chinese captionZh plus sourceLanguage for the language the actor would naturally post in. Do not return captionOriginal or captionTranslation. Prefer 2-4 natural sentences with a naturally varied length; do not write to a preview or collapse threshold.' +
         ' location MUST be English in City·Country / Place·Country format. tags MUST be English-only hashtags.' +
         ' Metrics must be plausible positive integers. If extra.includeInitialComments=true, return exactly extra.initialCommentCount visible comments and make metrics.comments at least that count.' +
         ' Stranger comment author must always be a string handle, never an object. Keep displayName separate. Every stranger handle/displayName must follow the current world/network-culture naming rules for the commenter account region/language; commenter language is independent from the post author language. Never generate the current user/persona as a commenter. For the standard 5-comment batch use at least 2 sourceLanguage values and at least one language different from the post caption language.';
@@ -11348,9 +11550,9 @@ startINSAutoPublishTimer();
 
     const map = {
       home_strangers:
-        '返回 {items:[{actor:{handle,displayName,language,region,bio},mediaItems:[{mediaDescription,mediaUrl?}],captionOriginal,captionTranslation,sourceLanguage,location,tags,metrics:{likes,comments,reposts,shares},initialComments:[{actorId,author,displayName,textOriginal,textTranslation,sourceLanguage,replyToActorId}]}]}。必须严格遵守 request.extra.requestedMediaCounts；每条动态 1-4 个 mediaItems，多图描述必须不同且 mediaDescription 一律中文。陌生人的昵称+ID+文案遵循其国家/地区语言与当地 IG 命名习惯。正文通常 2–4 句且长短自然，不需要适配预览或折叠阈值；非中文 captionOriginal 必须同时返回中文 captionTranslation。location 只用英文 City·Country / Place·Country（如 Seoul·Korea、Osaka·Japan、Taiwan·China），tags 只用英文。首页默认提高日韩、英语地区、港澳台繁中地区权重但不设硬配额。5 条评论至少 2 种 sourceLanguage，且至少 1 条与正文语言不同。',
+        '返回 {items:[{actor:{handle,displayName,language,region,bio},mediaItems:[{mediaDescription,mediaUrl?}],captionZh,sourceLanguage,location,tags,metrics:{likes,comments,reposts,shares},initialComments:[{actorId,author,displayName,textOriginal,textTranslation,sourceLanguage,replyToActorId}]}]}。首页 Feed 的 captionZh 固定为自然简体中文，sourceLanguage 标记账号原本会使用的语言；不要返回 captionOriginal/captionTranslation。必须严格遵守 request.extra.requestedMediaCounts；每条动态 1-4 个 mediaItems，多图描述必须不同且 mediaDescription 一律中文。陌生人的昵称+ID 遵循其国家/地区与当地 IG 命名习惯。location 只用英文 City·Country / Place·Country，tags 只用英文。',
       feed_generate:
-        '返回 {items:[{actorId,author,mediaType,mediaItems:[{mediaDescription,mediaUrl?,albumCategory?,albumTags?,albumEraId?}],captionOriginal,captionTranslation,sourceLanguage,location,tags,metrics:{likes,comments,reposts,shares},initialComments:[]}]}。如果 extra.freeMediaPlan=true，则根据动态本身自然决定 1-4 个 mediaItems，不固定张数、不固定人像/景物组合；否则仅在 request.extra.requestedMediaCounts 存在时严格遵守。多图描述必须彼此不同且全部中文。如 supplied preference 要求私人相册规划，每个图片槽位返回固定 albumCategory + 中文 albumTags；时期匹配开启时只有人像返回 albumEraId。captionOriginal 跟随发帖账号自然语言，通常 2–4 句且长短自然，不需要适配预览或折叠阈值；非中文 captionOriginal 必须同时返回中文 captionTranslation；location 只用英文 City·Country / Place·Country；tags 只用英文；标准 5 条评论至少 2 种语言且至少 1 条不同于正文。',
+        '返回 {items:[{actorId,author,mediaType,mediaItems:[{mediaDescription,mediaUrl?,albumCategory?,albumTags?,albumEraId?}],captionZh,sourceLanguage,location,tags,metrics:{likes,comments,reposts,shares},initialComments:[]}]}。首页 Feed 的 captionZh 固定为自然简体中文，sourceLanguage 标记账号原本会使用的语言；不要返回 captionOriginal/captionTranslation。如果 extra.freeMediaPlan=true，则根据动态本身自然决定 1-4 个 mediaItems；多图描述必须彼此不同且全部中文。location 只用英文 City·Country / Place·Country；tags 只用英文。',
       story_generate:
         '返回 {items:[{actorId,captionOriginal,captionTranslation,sourceLanguage,storyItems:[{type,mediaDescription,mediaUrl?,albumCategory?,albumTags?,albumEraId?}]}]}；每个 Story batch 自然决定 1-4 个 item，无公开评论线程。图片描述一律中文。如 supplied preference 要求私人相册规划，图片 item 返回固定 albumCategory + 中文 albumTags；时期匹配开启时只有人像返回 albumEraId。不要固定人像/景物比例。',
       reels_generate:
@@ -12060,7 +12262,7 @@ startINSAutoPublishTimer();
   // ============================================================
   const pluginApp = {
     id: APP_ID,
-    name: 'Nini INS 1.07.8',
+    name: 'Nini INS 1.07.9',
     iconImage: ICON_URL,
 
     async mount(container, roche) {
@@ -12143,6 +12345,28 @@ startINSAutoPublishTimer();
       const style = document.createElement('style');
       style.id = 'nini-ins-v5111-style';
       style.textContent = buildNativeScopedCSS(DIRECT_STYLE_TEXT);
+      style.textContent += buildNativeScopedCSS(`
+.feed-original-toggle{
+  display:block;
+  width:calc(100% - 28px);
+  min-height:28px;
+  margin:0 14px 8px;
+  padding:3px 0;
+  border:0;
+  background:transparent;
+  color:#70757d;
+  text-align:right;
+  font:inherit;
+  font-size:11px;
+  line-height:20px;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.feed-original-toggle:disabled{opacity:.58;cursor:default}
+#profileFeedTranslationApiCard .profile-setting-notebox{word-break:break-word}
+#profileFeedTranslationApiCard .profile-setting-save{margin-top:14px}
+`);
       style.textContent += `
 .nini-ins-native-host,.nini-ins-root{
   pointer-events:auto!important;
@@ -12733,7 +12957,7 @@ startINSAutoPublishTimer();
   // ============================================================
   window.RochePlugin.register({
     id: PLUGIN_ID,
-    name: 'Nini INS 1.07.8',
+    name: 'Nini INS 1.07.9',
     version: VERSION,
     description: '全球化拟真 INS 社交插件：Feed / Story / Reels / DM / 关系与 Roche 记忆串联。',
     author: 'Nini',
