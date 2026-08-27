@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.07.10（Feed 翻译 API 居中卡片 / 默认预填 SiliconFlow）
+// 版本：1.08（副 API 居中卡片）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.07.10';
+  const VERSION = '1.08';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -360,7 +360,7 @@ function homeFeedCaptionDisplayText(model){
 }
 function homeFeedOriginalButtonText(model){
   const language=homeFeedLanguageLabel(model?.sourceLanguage);
-  if(model?.state==='loading')return `正在生成${language}原文…`;
+  if(model?.state==='loading')return `正在恢复${language}原文…`;
   if(model?.state==='error'&&!model?.originalText)return `原文加载失败 · 重试`;
   return model?.showingOriginal?`翻译自${language} · 显示中文`:`翻译自${language} · 显示原文`;
 }
@@ -561,6 +561,15 @@ function normalizeHomeFeedTranslationEndpoint(url=''){
   if(!clean)return '';
   return /\/chat\/completions$/i.test(clean)?clean:clean+'/chat/completions';
 }
+function getHomeFeedTranslationRequestConfig(){
+  /* Dedicated Feed-translation route only.
+     Intentionally isolated from window.NiniINSAIBridge / Roche main API settings. */
+  return {
+    url:String(homeFeedTranslationApiSettings.url||'').trim(),
+    apiKey:String(homeFeedTranslationApiSettings.apiKey||'').trim(),
+    model:String(homeFeedTranslationApiSettings.model||'').trim()
+  };
+}
 function extractHomeFeedTranslationText(data){
   let content=data?.choices?.[0]?.message?.content??data?.choices?.[0]?.text??data?.output_text??data?.text??data?.content??'';
   if(Array.isArray(content))content=content.map(item=>typeof item==='string'?item:(item?.text||item?.content||'')).join('');
@@ -568,9 +577,10 @@ function extractHomeFeedTranslationText(data){
   return String(content||'').trim().replace(/^```(?:text)?\s*/i,'').replace(/\s*```$/,'').replace(/^[“"]|[”"]$/g,'').trim();
 }
 async function callHomeFeedOriginalApi(chineseCaption,sourceLanguage){
-  const url=normalizeHomeFeedTranslationEndpoint(homeFeedTranslationApiSettings.url);
-  const apiKey=String(homeFeedTranslationApiSettings.apiKey||'').trim();
-  const model=String(homeFeedTranslationApiSettings.model||'').trim();
+  const requestConfig=getHomeFeedTranslationRequestConfig();
+  const url=normalizeHomeFeedTranslationEndpoint(requestConfig.url);
+  const apiKey=requestConfig.apiKey;
+  const model=requestConfig.model;
   if(!url||!apiKey||!model)throw new Error('请先在侧边栏填写 Feed 正文翻译 API');
   const language=homeFeedLanguageLabel(sourceLanguage);
   const response=await fetch(url,{
@@ -9684,8 +9694,10 @@ document.getElementById('profileImagePromptSave')?.addEventListener('click',()=>
   insImagePromptSettings.negative=document.getElementById('insImagePromptNegative').value.trim();
   closeImagePromptSettings();
 });
-document.getElementById('profileSubApiClose')?.addEventListener('click', closeSubApiSettings);
-document.getElementById('profileSubApiSave')?.addEventListener('click', saveINSSubApiPreset);
+document.getElementById('profileSubApiCard')?.addEventListener('pointerup',event=>event.stopPropagation());
+document.getElementById('profileSubApiCard')?.addEventListener('click',event=>event.stopPropagation());
+document.getElementById('profileSubApiClose')?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();( closeSubApiSettings)(event);});
+document.getElementById('profileSubApiSave')?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();( saveINSSubApiPreset)(event);});
 document.getElementById('profileFeedTranslationApiCard')?.addEventListener('pointerup',event=>event.stopPropagation());
 document.getElementById('profileFeedTranslationApiCard')?.addEventListener('click',event=>event.stopPropagation());
 document.getElementById('profileFeedTranslationApiClose')?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closeHomeFeedTranslationApiSettings();});
@@ -12541,6 +12553,36 @@ startINSAutoPublishTimer();
 }
 .nini-ins-root #profileFeedTranslationApiCard.show{
   transform:translate(-50%,-50%) scale(1)!important;
+}
+
+/* v1.08: only the INS 副 API card follows the centered Feed-translation card layout. */
+.nini-ins-root #profileSubApiCard{
+  left:50%!important;
+  right:auto!important;
+  top:50%!important;
+  bottom:auto!important;
+  width:min(390px,calc(100% - 28px))!important;
+  max-height:min(620px,calc(100% - var(--ins-safe-top) - var(--ins-safe-bottom) - 48px))!important;
+  margin:0!important;
+  transform:translate(-50%,-50%) scale(.985)!important;
+  z-index:320!important;
+  padding:14px!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.nini-ins-root #profileSubApiCard.show{
+  transform:translate(-50%,-50%) scale(1)!important;
+}
+.nini-ins-root #profileSubApiCard .profile-setting-head{
+  position:sticky;
+  top:-14px;
+  z-index:4;
+  margin:-14px -4px 10px;
+  padding:14px 4px 8px;
+  background:linear-gradient(180deg,rgba(247,248,250,.99) 0%,rgba(247,248,250,.95) 82%,rgba(247,248,250,0) 100%);
+  -webkit-backdrop-filter:blur(22px);
+  backdrop-filter:blur(22px);
 }
 .nini-ins-root #profileFeedTranslationApiCard .profile-setting-head{
   position:sticky;
