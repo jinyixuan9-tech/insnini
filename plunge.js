@@ -5995,7 +5995,7 @@ function bindPeopleRelationsV11515(){
    3) Public visibility != actor knowledge.
    4) Sync cursor advances only after an actual Roche write succeeds.
 */
-const INS_MEMORY_SYNC_PREFIX='[NiniINSSync';
+const INS_MEMORY_SYNC_PREFIX='[RocheINSSync]';
 const INS_SOCIAL_MEMORY_STORAGE_KEY='nini-instagram-social-memory-v5';
 const INS_MEMORY_BUILD_ID='5.1.4';
 
@@ -6692,7 +6692,10 @@ function buildActorSyncSummary(actorId,{limit=30}={}){
     month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false
   });
   const lines=[
-    `${INS_MEMORY_SYNC_PREFIX} · INS 社交记忆 · ${now} · ${chosen.length}条]`,
+    INS_MEMORY_SYNC_PREFIX,
+    `[TIME]${now}[/TIME]`,
+    `[COUNT]${chosen.length}[/COUNT]`,
+    '[MEMORY]',
     `角色：${actor.name}${actor.handle?`（@${actor.handle}）`:''}`,
     `user：${userProfileState.displayName||userProfileState.id}（@${userProfileState.id}）`,
     '',
@@ -6709,6 +6712,8 @@ function buildActorSyncSummary(actorId,{limit=30}={}){
   });
 
   lines.push('这是我的私人社交记忆。之后聊天时可以自然记得并延续，但不需要向 user 逐字复述这份记录。');
+  lines.push('[/MEMORY]');
+  lines.push('[/RocheINSSync]');
 
   const target=getActorWritebackTarget(id);
   return {
