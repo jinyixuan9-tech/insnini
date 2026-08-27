@@ -15,7 +15,7 @@
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   const DM_SHARE_V120_STYLE = `
-/* ===== INS v1.2.0 DM Share ===== */
+/* ===== INS v1.2.3 DM Share ===== */
 .dm-share-card-v120{width:min(262px,82vw);border-radius:18px;overflow:hidden;border:1px solid #e5e7ec;background:#fff;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.05);touch-action:manipulation}
 .dm-share-card-v120.feed{color:#111;background:#fff}.dm-share-card-v120.reel{color:#fff;background:#0a0a0b;border-color:#222}
 .dm-share-card-v120 .dm-share-media-v120{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center;font-size:11px;line-height:1.55;padding:16px;background:#f2f3f5;color:#676c74}
@@ -34,12 +34,12 @@
 .dm-share-detail-body-v120{padding:13px 14px}.dm-share-detail-caption-v120{font-size:12px;line-height:1.62;white-space:pre-wrap}.dm-share-detail-meta-v120{margin-top:7px;font-size:9px;color:#92969d}.dm-share-detail-v120.reel .dm-share-detail-meta-v120{color:#8a8c92}
 .dm-share-comments-head-v120{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid #eceef2}.dm-share-detail-v120.reel .dm-share-comments-head-v120{border-color:#22242a}.dm-share-comments-head-v120 strong{font-size:12px}.dm-share-comment-v120{padding:10px 0;border-bottom:1px solid #eef0f3}.dm-share-detail-v120.reel .dm-share-comment-v120{border-color:#1f2024}.dm-share-comment-v120 b{font-size:10px}.dm-share-comment-v120 p{margin:4px 0 0;font-size:11px;line-height:1.45}.dm-share-comment-translation-v120{margin-top:4px;font-size:9px;line-height:1.4;color:#8b9097}.dm-share-detail-v120.reel .dm-share-comment-translation-v120{color:#9c9fa5}
 .dm-share-load-v120{width:100%;height:40px;margin:12px 0 4px;border:0;border-radius:12px;background:#f0f1f4;color:#666b73;font-size:11px;font-weight:800;cursor:pointer}.dm-share-detail-v120.reel .dm-share-load-v120{background:#18191d;color:#f2f2f4}.dm-share-load-v120:disabled{opacity:.58}
-.dm-share-pending-v122{display:flex;align-items:flex-start;gap:8px;margin:6px 0 2px;padding-right:52px}
-.dm-share-pending-v122 .dm-msg-avatar{flex:0 0 auto}
-.dm-share-pending-bubble-v122{height:34px;min-width:48px;padding:0 12px;border-radius:8px 16px 16px 16px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px}
-.dm-share-pending-dot-v122{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;animation:dmSharePendingDotV122 1s infinite ease-in-out}
-.dm-share-pending-dot-v122:nth-child(2){animation-delay:.14s}.dm-share-pending-dot-v122:nth-child(3){animation-delay:.28s}
-@keyframes dmSharePendingDotV122{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-3px);opacity:1}}
+.dm-share-pending-v123{display:flex;align-items:flex-start;gap:8px;margin:6px 0 2px;padding-right:52px}
+.dm-share-pending-v123 .dm-msg-avatar{flex:0 0 auto}
+.dm-share-pending-bubble-v123{height:34px;min-width:48px;padding:0 12px;border-radius:8px 16px 16px 16px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px}
+.dm-share-pending-dot-v123{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;animation:dmSharePendingDotV123 1s infinite ease-in-out}
+.dm-share-pending-dot-v123:nth-child(2){animation-delay:.14s}.dm-share-pending-dot-v123:nth-child(3){animation-delay:.28s}
+@keyframes dmSharePendingDotV123{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-3px);opacity:1}}
 `;
 
   let ACTIVE_DIRECT_HOST = null;
@@ -2770,6 +2770,40 @@ function createActorDMOnlyShare(actorId,type,data={}){
   const description=String(type==='reel'?(data.videoDescription??data.mediaDescription??'随手短视频'):(data.mediaDescription??data.mediaItems?.[0]?.mediaDescription??'生活随手记录'));
   return makeDMContextCard(type==='reel'?'reel':'post',{postId:`dm_only_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,author,displayName:String(data.displayName||data.actor?.displayName||author),caption,captionTranslation:String(data.captionTranslation||''),mediaUrl:type==='feed'?String(data.mediaUrl||data.mediaItems?.[0]?.mediaUrl||''):'',mediaDescription:description,mediaClass:'m1',senderId:actorId,source:'dm_only',contentType:type,sourceLanguage:String(data.sourceLanguage||''),location:String(data.location||''),tags:Array.isArray(data.tags)?data.tags:[],metrics:data.metrics||{},comments:(Array.isArray(data.initialComments)?data.initialComments:[]).slice(0,5).map(normalizeDMShareCommentRow)});
 }
+function getDMShareActorIdentity(actorId){
+  const id=normalizeSocialActorId(actorId);
+  const profile=typeof getDMProfile==='function'?getDMProfile(id):{};
+  const actor=typeof getRelationshipActor==='function'?getRelationshipActor(id):null;
+  const author=String(profile?.handle||actor?.handle||actor?.igId||actor?.username||actor?.id||socialActorName(id)||'shared.today').replace(/^@/,'');
+  const displayName=String(actor?.nickname||actor?.displayName||profile?.displayName||profile?.name||socialActorName(id)||author);
+  return {author,displayName};
+}
+async function generateFreshDMOnlyShareCard(actorId,type,lastUserText=''){
+  const id=normalizeSocialActorId(actorId);
+  if(!id||(type!=='feed'&&type!=='reel'))return null;
+  const identity=getDMShareActorIdentity(id);
+  const guidance=(type==='feed')
+    ? `This is a private INS DM share requested by User. Generate exactly 1 fresh IG post that feels newly chosen for this chat right now. Do NOT reuse or imitate the built-in sample posts (for example the default food sample, default travel sample, default daily sample, or other obviously repeated stock content). Keep it suitable for a share card in DM. User request/context: ${String(lastUserText||'').trim()||'Give the user something fresh to look at.'}`
+    : `This is a private INS DM share requested by User. Generate exactly 1 fresh Reel that feels newly chosen for this chat right now. Do NOT reuse or imitate the built-in sample reels (for example the default Kamakura reel, default amusement-park reel, or other obviously repeated stock content). Keep it suitable for a share card in DM. User request/context: ${String(lastUserText||'').trim()||'Give the user something fresh to watch.'}`;
+  try{
+    let result=null;
+    if(type==='feed' && typeof callNiniINSFeedSinglePass==='function'){
+      result=await callNiniINSFeedSinglePass(INS_AI_TASKS.FEED_GENERATE,{actorIds:[id],ownerId:id,surface:'feed',prompt:composeCharGenerationPrompt({actorIds:[id],surface:'feed',extraPrompt:guidance}),extra:{requestedCount:1,onePerActor:true,freeMediaPlan:true,includeInitialComments:true,initialCommentCount:5,requireEngagementMetrics:true,forbidCurrentUserInComments:true,diagnosticBuild:'1.2.3-dm-share-fresh-feed',ownerMode:'selected_actor',dmOnlyShare:true}});
+    }else{
+      result=await callNiniINSAI(INS_AI_TASKS.REELS_GENERATE,{actorIds:[id],ownerId:id,surface:'reels',prompt:composeCharGenerationPrompt({actorIds:[id],surface:'reels',extraPrompt:guidance}),extra:{requestedCount:1,onePerActor:true,includeInitialComments:true,initialCommentCount:5,diagnosticBuild:'1.2.3-dm-share-fresh-reel',dmOnlyShare:true}});
+    }
+    if(!result?.ok)return null;
+    const row=getGeneratedItems(result.data)[0];
+    if(!row)return null;
+    if(type==='feed'){
+      return createActorDMOnlyShare(id,'feed',{author:identity.author,displayName:identity.displayName,captionZh:String(row?.captionZh??row?.captionOriginal??row?.caption??''),captionOriginal:String(row?.captionOriginal??row?.captionZh??row?.caption??''),captionTranslation:String(row?.captionTranslation??row?.translation??''),mediaUrl:String(row?.mediaUrl||row?.mediaItems?.[0]?.mediaUrl||''),mediaDescription:String(row?.mediaDescription||row?.mediaText||row?.imageDescription||row?.mediaItems?.[0]?.mediaDescription||'生活随手记录'),sourceLanguage:String(row?.sourceLanguage||row?.feedSourceLanguage||''),location:String(row?.location||row?.sub||''),tags:Array.isArray(row?.tags)?row.tags:[],metrics:row?.metrics||{},initialComments:Array.isArray(row?.initialComments)?row.initialComments.slice(0,5):[]});
+    }
+    return createActorDMOnlyShare(id,'reel',{author:identity.author,displayName:identity.displayName,captionOriginal:String(row?.captionOriginal??row?.caption??''),caption:String(row?.caption??row?.captionOriginal??''),captionTranslation:String(row?.captionTranslation??row?.translation??''),videoDescription:String(row?.videoDescription||row?.mediaDescription||'随手短视频'),mediaDescription:String(row?.videoDescription||row?.mediaDescription||'随手短视频'),sourceLanguage:String(row?.sourceLanguage||''),location:String(row?.location||''),tags:Array.isArray(row?.tags)?row.tags:[],metrics:row?.metrics||{},initialComments:Array.isArray(row?.initialComments)?row.initialComments.slice(0,5):[]});
+  }catch(error){
+    console.warn('[INS] fresh DM share generation failed',type,error);
+    return null;
+  }
+}
 function detectDMRequestedShareType(text=''){
   const t=String(text||'').toLowerCase();
   if(/reel|短视频|视频/.test(t))return 'reel';
@@ -2799,17 +2833,17 @@ function repairDMShareDecisionForExplicitRequest(actorId,share,lastUserText,rows
   const pick=(type='')=>all.find(row=>!type||row.contentType===type)||null;
   let next=share&&typeof share==='object'?{...share}:null;
 
-  // v1.2.2: if the character literally says they are sending something now, force a real card fallback.
-  // This also repairs contradictory AI payloads such as decision=none/defer + “喏，这个呢”.
+  // v1.2.3: explicit user requests prefer a freshly generated DM-only share instead of reusing built-in linked content.
+  const requestedExplicitly=!!String(lastUserText||'').trim();
   if(looksLikeDMAffirmativeShareReply(rows)){
-    const candidate=pick(requestedType);
-    if(candidate){
-      const currentDecision=String(next?.decision||next?.action||'').toLowerCase();
-      const currentSource=String(next?.source||'linked').toLowerCase();
-      const hasRenderableOwn=next&&currentDecision==='share'&&['dm_only','own_publish'].includes(currentSource)&&next.content&&typeof next.content==='object';
-      if(!hasRenderableOwn){
-        next={...(next||{}),decision:'share',source:'linked',contentType:candidate.contentType,contentId:candidate.contentId,relevance:1};
-      }
+    const candidate=pick(requestedType)||pick('');
+    const forcedType=requestedType||(candidate?.contentType)||String(next?.contentType||next?.type||'').toLowerCase();
+    const currentDecision=String(next?.decision||next?.action||'').toLowerCase();
+    const currentSource=String(next?.source||'').toLowerCase();
+    const hasRenderableOwn=next&&currentDecision==='share'&&['dm_only','own_publish'].includes(currentSource)&&next.content&&typeof next.content==='object'&&String(next.content.captionOriginal??next.content.captionZh??next.content.caption??next.content.videoDescription??next.content.mediaDescription??'').trim();
+    if(!hasRenderableOwn){
+      next={...(next||{}),decision:'share',source:'dm_only',preferFresh:true,contentType:(forcedType==='reel'||forcedType==='feed')?forcedType:(candidate?.contentType||'feed')};
+      delete next.contentId;
     }
   }
   if(!next)return null;
@@ -2817,9 +2851,10 @@ function repairDMShareDecisionForExplicitRequest(actorId,share,lastUserText,rows
   if(decision!=='share')return next;
   let type=String(next.contentType||next.type||requestedType||'').toLowerCase();
   if(type!=='feed'&&type!=='reel')type=pick(requestedType)?.contentType||'';
-  if(!type)return {...next,decision:'defer'};
+  if(!type)type='feed';
   next.contentType=type;
   let source=String(next.source||'linked').toLowerCase();
+  if(requestedExplicitly && (!source || source==='linked'))source='dm_only';
   if(!['linked','dm_only','own_publish'].includes(source))source='linked';
   next.source=source;
 
@@ -2828,26 +2863,26 @@ function repairDMShareDecisionForExplicitRequest(actorId,share,lastUserText,rows
     if(!valid){
       const fallback=pick(type);
       if(fallback)next.contentId=fallback.contentId;
+      else if(requestedExplicitly){ next.source='dm_only'; next.preferFresh=true; delete next.contentId; }
       else return {...next,decision:'defer'};
     }
   }else if(source==='dm_only'){
     const content=next.content&&typeof next.content==='object'?next.content:{};
     const hasUseful=String(content.captionOriginal??content.captionZh??content.caption??content.videoDescription??content.mediaDescription??'').trim();
-    if(!hasUseful){
+    if(!hasUseful && requestedExplicitly)next.preferFresh=true;
+    else if(!hasUseful && !requestedExplicitly){
       const fallback=pick(type);
       if(fallback)next={...next,source:'linked',contentId:fallback.contentId};
     }
   }
   return next;
 }
-function applyActorDMShareDecision(actorId,share,userRequested){
+async function applyActorDMShareDecision(actorId,share,userRequested,lastUserText=''){
   if(!share||typeof share!=='object')return false;
   const decision=String(share.decision||share.action||'none').toLowerCase();
   const id=normalizeSocialActorId(actorId);const state=dmShareIntentState[id]||{pending:0};
   if(decision==='defer'||decision==='refuse'){state.pending=Math.min(3,(Number(state.pending)||0)+1);dmShareIntentState[id]=state;persistDMShareIntentState();return false;}
   if(decision!=='share')return false;
-  // v1.2.1: once AI has decided "share", do not run a second random veto here.
-  // The unsolicited probability gate happens BEFORE the AI response so text and card cannot disagree.
   const rawType=String(share.contentType||share.type||'').toLowerCase();
   if(rawType!=='feed'&&rawType!=='reel')return false;
   const type=rawType;
@@ -2856,34 +2891,43 @@ function applyActorDMShareDecision(actorId,share,userRequested){
     const contentId=String(share.contentId||'');const candidate=getDMShareCandidates(id,30).find(row=>String(row.contentId)===contentId&&row.contentType===type);if(!candidate)return false;
     const content=type==='feed'?resolveDMShareCardContent({kind:'post',contentType:'feed',postId:contentId,author:candidate.author,caption:candidate.caption,source:'linked'}):resolveDMShareCardContent({kind:'reel',contentType:'reel',postId:contentId,author:candidate.author,caption:candidate.caption,source:'linked'});if(!content)return false;recordActorSawSharedLinkedContent(id,content);
     card=makeDMContextCard(type==='reel'?'reel':'post',{postId:content.id,author:content.author,caption:content.caption,captionTranslation:content.captionTranslation||'',mediaUrl:content.mediaUrl||'',mediaDescription:content.mediaDescription||'',mediaClass:'m1',senderId:id,source:'linked',contentType:type,sourceLanguage:content.sourceLanguage||'',location:content.location||'',tags:content.tags||[],metrics:content.metrics||{}});
-  }else if(source==='own_publish')card=createActorPublishedDMShare(id,type,share.content||share);
-  else card=createActorDMOnlyShare(id,type,share.content||share);
+  }else if(source==='own_publish'){
+    card=createActorPublishedDMShare(id,type,share.content||share);
+    if(!card && userRequested)card=await generateFreshDMOnlyShareCard(id,type,lastUserText);
+  }else{
+    const content=share.content&&typeof share.content==='object'?share.content:{};
+    const hasUseful=String(content.captionOriginal??content.captionZh??content.caption??content.videoDescription??content.mediaDescription??'').trim();
+    if((userRequested && (share.preferFresh||!hasUseful)) || (!hasUseful && share.preferFresh)){
+      card=await generateFreshDMOnlyShareCard(id,type,lastUserText);
+    }
+    if(!card)card=createActorDMOnlyShare(id,type,share.content||share);
+  }
   if(!card)return false;if(!dmSharedCards[currentDMChat])dmSharedCards[currentDMChat]=[];dmSharedCards[currentDMChat].push(card);state.pending=0;dmShareIntentState[id]=state;persistDMShareIntentState();scheduleINSDMHistoryPersistence();updateDMListPreview(currentDMChat,`分享了一条 ${type==='reel'?'Reel':'IG 动态'}`);renderDMChatStream(currentDMChat);return true;
 }
 
 document.getElementById('dmChatMessages')?.addEventListener('click',event=>{const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;openDMShareCardDetail(card.dataset.dmShareCard);});
 document.getElementById('dmChatMessages')?.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;event.preventDefault();openDMShareCardDetail(card.dataset.dmShareCard);});
 
-function showDMSharePendingBubbleV122(recipient){
+function showDMSharePendingBubbleV123(recipient){
   const box=document.getElementById('dmChatMessages');
   if(!box||!recipient)return null;
-  removeDMSharePendingBubbleV122();
+  removeDMSharePendingBubbleV123();
   const profile=getDMProfile(recipient);
   const row=document.createElement('div');
-  row.id='dmSharePendingBubbleV122';
-  row.className='dm-share-pending-v122';
-  row.innerHTML=`<div class="dm-msg-avatar" data-identity-avatar="${escapeDMCardHTML(profile.identityId||profile.handle||recipient)}">${profile.avatarUrl?'':escapeDMCardHTML(profile.initial||'?')}</div><div class="dm-share-pending-bubble-v122" aria-label="正在准备分享"><span class="dm-share-pending-dot-v122"></span><span class="dm-share-pending-dot-v122"></span><span class="dm-share-pending-dot-v122"></span></div>`;
+  row.id='dmSharePendingBubbleV123';
+  row.className='dm-share-pending-v123';
+  row.innerHTML=`<div class="dm-msg-avatar" data-identity-avatar="${escapeDMCardHTML(profile.identityId||profile.handle||recipient)}">${profile.avatarUrl?'':escapeDMCardHTML(profile.initial||'?')}</div><div class="dm-share-pending-bubble-v123" aria-label="正在准备分享"><span class="dm-share-pending-dot-v123"></span><span class="dm-share-pending-dot-v123"></span><span class="dm-share-pending-dot-v123"></span></div>`;
   box.appendChild(row);
   hydrateIdentityAvatars(row);
   requestAnimationFrame(()=>{const scroller=document.getElementById('dmChatScroll');if(scroller)scroller.scrollTop=scroller.scrollHeight;});
   return row;
 }
-function removeDMSharePendingBubbleV122(){document.getElementById('dmSharePendingBubbleV122')?.remove();}
-function shouldAttemptDMShareCardV122(share,rows=[],userRequested=false){
+function removeDMSharePendingBubbleV123(){document.getElementById('dmSharePendingBubbleV123')?.remove();}
+function shouldAttemptDMShareCardV123(share,rows=[],userRequested=false){
   const decision=String(share?.decision||share?.action||'none').toLowerCase();
   return decision==='share'||(userRequested&&looksLikeDMAffirmativeShareReply(rows));
 }
-function waitDMSharePendingV122(ms=520){return new Promise(resolve=>setTimeout(resolve,ms));}
+function waitDMSharePendingV123(ms=520){return new Promise(resolve=>setTimeout(resolve,ms));}
 
 async function dmSummonAI(){
   if(!currentDMChat||dmAIReplyInFlight)return;
@@ -2913,18 +2957,18 @@ async function dmSummonAI(){
     if(!userRequestedShare&&!allowShareNow&&share&&String(share.decision||share.action||'none').toLowerCase()==='share')share={decision:'none'};
     if(!rows.length&&!share)throw new Error('AI 没有返回 messages');
     const pendingBefore=Number((dmShareIntentState[actorId]||{}).pending)||0;
-    const willAttemptShare=shouldAttemptDMShareCardV122(share,rows,userRequestedShare);
+    const willAttemptShare=shouldAttemptDMShareCardV123(share,rows,userRequestedShare);
     if(willAttemptShare){
-      showDMSharePendingBubbleV122(currentDMChat);
-      await waitDMSharePendingV122();
+      showDMSharePendingBubbleV123(currentDMChat);
+      await waitDMSharePendingV123();
     }
-    const didShare=applyActorDMShareDecision(actorId,share,userRequestedShare);
-    removeDMSharePendingBubbleV122();
+    const didShare=await applyActorDMShareDecision(actorId,share,userRequestedShare,lastUserText);
+    removeDMSharePendingBubbleV123();
     // Render text after the card decision. If the character claimed to send a card but card creation failed, drop that claim.
     rows.slice(0,4).forEach(row=>{const text=String(row.textOriginal??row.text??'').trim();if(!text)return;if(userRequestedShare&&looksLikeDMAffirmativeShareReply([row])&&!didShare)return;addDMMessage(currentDMChat,'them',text,String(row.textTranslation??row.translation??'').trim());});
     if(userRequestedShare&&!didShare&&(Number((dmShareIntentState[actorId]||{}).pending)||0)===pendingBefore){const state=dmShareIntentState[actorId]||{pending:0};state.pending=Math.min(3,(Number(state.pending)||0)+1);dmShareIntentState[actorId]=state;persistDMShareIntentState();}
   }catch(error){alert('INS 私信 AI 调用失败：'+(error?.message||error));}
-  finally{removeDMSharePendingBubbleV122();typing?.classList.remove('show');if(plane){plane.disabled=false;plane.removeAttribute('aria-busy');}dmAIReplyInFlight=false;}
+  finally{removeDMSharePendingBubbleV123();typing?.classList.remove('show');if(plane){plane.disabled=false;plane.removeAttribute('aria-busy');}dmAIReplyInFlight=false;}
 }
 
 document.getElementById('dmMsgInput')?.addEventListener('keydown', e=>{
