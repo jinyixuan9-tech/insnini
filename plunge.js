@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：INS
-// 版本：1.2.6（基于 1.2.4 · 仅调整设置卡片位置与回传提示）
+// 版本：1.2.7（控制中心缩放 + 中央滚动卡片 + 记忆入口修复）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -9,9 +9,9 @@
   // v1.07.8 intentionally uses fresh Roche identities. Some mobile builds keep
   // the already-registered app object when a TXT with the same ids is imported,
   // which leaves the old Home renderer alive even after the file is replaced.
-  const PLUGIN_ID = 'nini-ins-roche-v1081';
-  const APP_ID = 'nini-ins-home-v1081';
-  const VERSION = '1.2.6';
+  const PLUGIN_ID = 'nini-ins-roche-v1082';
+  const APP_ID = 'nini-ins-home-v1082';
+  const VERSION = '1.2.7';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   const DM_SHARE_V120_STYLE = `
@@ -46,27 +46,87 @@
 .dm-share-pending-dot-v122{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;animation:dmSharePendingDotV122 1s infinite ease-in-out}
 .dm-share-pending-dot-v122:nth-child(2){animation-delay:.14s}.dm-share-pending-dot-v122:nth-child(3){animation-delay:.28s}
 @keyframes dmSharePendingDotV122{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-3px);opacity:1}}
-/* ===== INS v1.2.6 position-only fixes; no tap-routing changes ===== */
-#insMemoryPreviewSheet,#insMemorySourceSheet{
-  left:50%!important;right:auto!important;top:50%!important;bottom:auto!important;
-  width:min(390px,calc(100% - 28px))!important;
-  max-height:min(78vh,680px)!important;
-  margin:0!important;
-  transform:translate(-50%,-50%) scale(.985)!important;
-  box-shadow:0 18px 50px rgba(20,24,30,.18)!important;
+/* ===== INS v1.2.7 compact control-center cards; no bottom-nav routing changes ===== */
+/* Main control center: smaller floating drawer, still uses the same existing click handlers. */
+.profile-drawer{
+  top:calc(var(--ins-safe-top) + 16px)!important;
+  bottom:calc(82px + var(--ins-safe-bottom))!important;
+  right:10px!important;
+  width:min(80%,330px)!important;
+  border-radius:24px 0 0 24px!important;
+  padding:13px 12px 24px!important;
 }
-#insMemoryPreviewSheet.show,#insMemorySourceSheet.show{
-  transform:translate(-50%,-50%) scale(1)!important;
-}
+.drawer-head{height:52px!important;margin:-13px -1px 6px!important;padding:12px 2px 7px!important}
+.drawer-title{font-size:18px!important}
+.drawer-section{margin-top:8px!important;border-radius:16px!important}
+.drawer-item{min-height:48px!important}
+
+/* All control-center setting cards: centered, smaller, content scrolls inside the card. */
+.profile-setting-card,
+#profileFeedTranslationApiCard,
+#profileImagePromptCard,
+#profileSubApiCard,
 #profileAtmosphereCard{
-  left:50%!important;right:auto!important;top:50%!important;bottom:auto!important;
-  width:min(390px,calc(100% - 28px))!important;
-  max-height:min(620px,calc(100% - var(--ins-safe-top) - var(--ins-safe-bottom) - 48px))!important;
+  left:50%!important;
+  right:auto!important;
+  top:50%!important;
+  bottom:auto!important;
+  width:min(350px,calc(100% - 40px))!important;
+  max-height:min(68vh,520px)!important;
   margin:0!important;
+  padding:12px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
   transform:translate(-50%,-50%) scale(.985)!important;
+  border-radius:22px!important;
   z-index:320!important;
 }
-#profileAtmosphereCard.show{transform:translate(-50%,-50%) scale(1)!important;}
+.profile-setting-card.show,
+#profileFeedTranslationApiCard.show,
+#profileImagePromptCard.show,
+#profileSubApiCard.show,
+#profileAtmosphereCard.show{
+  transform:translate(-50%,-50%) scale(1)!important;
+}
+.profile-setting-block{margin-top:8px!important;padding:9px!important;border-radius:14px!important}
+.profile-setting-head{margin-bottom:8px!important}
+.profile-setting-head strong{font-size:15px!important}
+.profile-setting-save{min-height:40px!important}
+
+/* Memory mount / preview are independent centered cards. Keep them comfortably above the bottom nav. */
+#insMemoryPreviewSheet,
+#insMemorySourceSheet{
+  left:50%!important;
+  right:auto!important;
+  top:50%!important;
+  bottom:auto!important;
+  width:min(350px,calc(100% - 40px))!important;
+  max-height:min(62vh,500px)!important;
+  margin:0!important;
+  padding:12px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  transform:translate(-50%,-50%) scale(.985)!important;
+  border-radius:22px!important;
+  box-shadow:0 16px 44px rgba(20,24,30,.18)!important;
+}
+#insMemoryPreviewSheet.show,
+#insMemorySourceSheet.show{
+  transform:translate(-50%,-50%) scale(1)!important;
+}
+#insMemoryPreviewSheet .ins-memory-sheet-head,
+#insMemorySourceSheet .ins-memory-sheet-head{
+  top:-12px!important;
+  margin:-12px -12px 8px!important;
+  padding:12px 12px 9px!important;
+}
+#insMemoryPreviewSheet .ins-memory-preview{max-height:280px!important;overflow-y:auto!important}
+#insMemorySourceSheet .ins-memory-source-list{max-height:260px!important;overflow-y:auto!important;padding-right:2px!important}
+#insMemorySourceSheet .ins-memory-source-refresh{position:sticky!important;bottom:-12px!important;margin-top:10px!important}
 `;
   let ACTIVE_DIRECT_HOST = null;
   let ACTIVE_DIRECT_STYLE = null;
@@ -6929,6 +6989,7 @@ function renderINSMemoryBridge(){
 
 function openINSMemoryBridge(){
   closeProfileDrawer?.();
+  closeINSMemorySheets();
   renderINSMemoryBridge();
   showRoute('routeMemoryBridge');
 }
