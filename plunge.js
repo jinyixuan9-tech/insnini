@@ -1,14 +1,17 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.07.7（首页正文与翻译逻辑重写）
+// 版本：1.07.8（首页译文强制新实例诊断版）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
   'use strict';
 
-  const PLUGIN_ID = 'nini-ins-roche';
-  const APP_ID = 'nini-ins-home';
-  const VERSION = '1.07.7';
+  // v1.07.8 intentionally uses fresh Roche identities. Some mobile builds keep
+  // the already-registered app object when a TXT with the same ids is imported,
+  // which leaves the old Home renderer alive even after the file is replaced.
+  const PLUGIN_ID = 'nini-ins-roche-v1078';
+  const APP_ID = 'nini-ins-home-v1078';
+  const VERSION = '1.07.8';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -197,9 +200,9 @@ const NAV_ASSET={
 };
 
 const posts=[
-{id:'p_rec_food',type:'stranger',followed:false,author:'heyy.he',avatar:'H',sub:'为你推荐',mediaClass:'m1',mediaText:'浙江日常美食照片。',mediaDescription:'浙江的日常美食随拍，餐桌上摆着刚上桌的食物，光线自然，像普通用户随手记录的一顿饭。',mediaUrl:'https://imgbed.heliar.top/i/Y7dNw_BRdx54VeOS_Screenshot_20260826_214751.webp',likes:1284,comments:45,reposts:31,shares:66,liked:false,reposted:false,expanded:false,translated:false,captionShort:'今天本来只是想随便吃点，结果比想象中好吃很多。这种时候就会突然觉得，出门还是值得的。',captionLong:'',translation:'',sourceLanguage:'zh',tags:['#daily','#food','#weekend']},
-{id:'p_rec_idol',type:'stranger',followed:false,author:'haru.archive',avatar:'H',sub:'为你推荐',mediaClass:'m2',mediaText:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaDescription:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaUrl:'',likes:26400,comments:1287,reposts:807,shares:1930,liked:false,reposted:false,expanded:false,translated:false,captionShort:'오늘도 고마워요. 끝나고 나니까 이제야 조금 실감 난다. 집 가자 💤',captionLong:'',translation:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',sourceLanguage:'ko',tags:['#backstage','#today','#seoul']},
-{id:'p_rec_swiss',type:'stranger',followed:false,author:'mialater',avatar:'M',sub:'为你推荐',mediaClass:'m3',mediaText:'瑞士雪山旅行照片。',mediaDescription:'瑞士雪山旅行随拍，远处是高耸雪峰与开阔山谷，空气清透，光线干净，带有真实旅行记录感。',mediaUrl:'https://imgbed.heliar.top/i/Z_jJ7jv3jZq6bkaY_Screenshot_20260826_214453.webp',likes:6942,comments:236,reposts:142,shares:417,liked:false,reposted:false,expanded:false,translated:false,captionShort:'Woke up to this and forgot what I was about to complain about. Some places really do make everything feel quieter for a while.',captionLong:'',translation:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',sourceLanguage:'en',tags:['#switzerland','#mountains','#travel']}
+{id:'p_rec_food',type:'stranger',followed:false,author:'heyy.he',avatar:'H',sub:'为你推荐',mediaClass:'m1',mediaText:'浙江日常美食照片。',mediaDescription:'浙江的日常美食随拍，餐桌上摆着刚上桌的食物，光线自然，像普通用户随手记录的一顿饭。',mediaUrl:'https://imgbed.heliar.top/i/Y7dNw_BRdx54VeOS_Screenshot_20260826_214751.webp',likes:1284,comments:45,reposts:31,shares:66,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'今天本来只是想随便吃点，结果比想象中好吃很多。这种时候就会突然觉得，出门还是值得的。',captionTranslation:'',captionShort:'今天本来只是想随便吃点，结果比想象中好吃很多。这种时候就会突然觉得，出门还是值得的。',captionLong:'',translation:'',sourceLanguage:'zh',tags:['#daily','#food','#weekend']},
+{id:'p_rec_idol',type:'stranger',followed:false,author:'haru.archive',avatar:'H',sub:'为你推荐',mediaClass:'m2',mediaText:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaDescription:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaUrl:'',likes:26400,comments:1287,reposts:807,shares:1930,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'오늘도 고마워요. 끝나고 나니까 이제야 조금 실감 난다. 집 가자 💤',captionTranslation:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',captionShort:'오늘도 고마워요. 끝나고 나니까 이제야 조금 실감 난다. 집 가자 💤',captionLong:'',translation:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',sourceLanguage:'ko',tags:['#backstage','#today','#seoul']},
+{id:'p_rec_swiss',type:'stranger',followed:false,author:'mialater',avatar:'M',sub:'为你推荐',mediaClass:'m3',mediaText:'瑞士雪山旅行照片。',mediaDescription:'瑞士雪山旅行随拍，远处是高耸雪峰与开阔山谷，空气清透，光线干净，带有真实旅行记录感。',mediaUrl:'https://imgbed.heliar.top/i/Z_jJ7jv3jZq6bkaY_Screenshot_20260826_214453.webp',likes:6942,comments:236,reposts:142,shares:417,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'Woke up to this and forgot what I was about to complain about. Some places really do make everything feel quieter for a while.',captionTranslation:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',captionShort:'Woke up to this and forgot what I was about to complain about. Some places really do make everything feel quieter for a while.',captionLong:'',translation:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',sourceLanguage:'en',tags:['#switzerland','#mountains','#travel']}
 ];
 
 posts.forEach((p,index)=>{
@@ -302,7 +305,9 @@ function homeFeedCaptionHasTranslation(model){
 }
 
 function renderFeed(){
-  let html='';
+  /* This marker is intentionally rendered by the same function that renders
+     translation buttons. Seeing it proves the fresh Home runtime is active. */
+  let html='<div data-ins-runtime-version="1.07.8" style="width:max-content;max-width:calc(100% - 28px);margin:7px auto;padding:3px 9px;border-radius:999px;background:#111;color:#fff;font-size:10px;font-weight:750;line-height:16px;letter-spacing:.1px">v1.07.8 · 首页译文新实例</div>';
   posts.forEach((p,i)=>{
     const captionModel=ensureHomeFeedCaptionModel(p);
     html+=`
@@ -12055,7 +12060,7 @@ startINSAutoPublishTimer();
   // ============================================================
   const pluginApp = {
     id: APP_ID,
-    name: 'Nini INS',
+    name: 'Nini INS 1.07.8',
     iconImage: ICON_URL,
 
     async mount(container, roche) {
@@ -12728,7 +12733,7 @@ startINSAutoPublishTimer();
   // ============================================================
   window.RochePlugin.register({
     id: PLUGIN_ID,
-    name: 'Nini INS',
+    name: 'Nini INS 1.07.8',
     version: VERSION,
     description: '全球化拟真 INS 社交插件：Feed / Story / Reels / DM / 关系与 Roche 记忆串联。',
     author: 'Nini',
