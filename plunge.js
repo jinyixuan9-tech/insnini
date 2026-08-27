@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.08（副 API 居中卡片）
+// 版本：1.08.1（Reels 默认内容 + 初始评论）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.08';
+  const VERSION = '1.08.1';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -649,7 +649,25 @@ async function toggleHomeFeedOriginal(postId,article){
 
 
 /* ===== v1.15 Integrated Reels ===== */
-const reelsV15State = {activeId:'reel_public_01',selectedIdentity:'current',globalTranslation:false,items:[{id:'reel_public_01',author:'tokyo_01pm',initial:'?',kind:'stranger',followed:false,liked:false,reposted:false,translated:false,likes:51000,comments:1100,reposts:708,videoDescription:'陌生公开账号拍的东京街头短视频。画面从车站出口扫到路边樱花，再快速切到人群。',caption:'春天终于有一点感觉了。',captionTranslation:'It finally feels a little like spring.',tags:['#tokyo','#sakura','#street']}],comments:{reel_public_01:[{initial:'?',author:'viewer_09',text:'今年樱花感觉开得好快。',translation:'',translated:false}]}};
+const reelsV15State = {
+activeId:'reel_kamakura_01',selectedIdentity:'current',globalTranslation:false,
+items:[
+{id:'reel_kamakura_01',author:'umi.after5',initial:'U',kind:'stranger',followed:false,liked:false,reposted:false,translated:false,likes:18600,comments:486,reposts:329,videoDescription:'傍晚贴着海岸慢慢沉下来，江之电晃进小小的车站，站台上的人影被夕阳拖得很长，远处的海亮成一片晃眼的银。车门开合，风顺着轨道钻进来，衣角和路边的旗子一起轻轻扬起来。\n\n电车沿着海边缓缓滑过去，半开的车窗把天空、房屋和海切成一格一格流动的画面。夕阳落在浪尖上，金橘色的光碎得很薄，冲浪板靠在路边的墙上，像还舍不得收起这一天。\n\n海边的人行道上有人推着单车，有人踩着拖鞋慢慢往回走，风声和轨道摩擦的声音偶尔撞在一起。路灯还没有完全亮起来，天空已经从暖黄色退成很浅的蓝。\n\n电车从海边公路的一端驶过去，车窗里的灯一格格亮起来，又很快消失在远处。海水仍旧一下一下推回岸边，夏天像是走到了门口，却忽然又回过头，看了这个傍晚一眼。',caption:'夏が終わる前に、もう一度ここへ。',captionTranslation:'夏天结束之前，还想再来一次这里。',sourceLanguage:'ja',tags:['#kamakura','#enoden','#summerdays']},
+{id:'reel_amusement_01',author:'momo.zip',initial:'M',kind:'stranger',followed:false,liked:false,reposted:false,translated:false,likes:9730,comments:327,reposts:251,videoDescription:'阳光亮得让人有些睁不开眼。戴着毛绒发箍的女孩站在人群里，穿着粉色外套的朋友从远处叫她，她一回头就笑起来，过山车刚好从身后轰地掠过去，连空气都像被带得晃了一下。\n\n镜头跟着她们往前跑，彩色气球在头顶轻轻摇晃，糖果摊和游戏摊一格一格擦过去。背着蓝色包的短发男孩从旁边追上来，怀里抱着刚赢来的玩偶，笑得站都站不稳，戴着毛绒发箍的女孩伸手去抢，穿粉色外套的朋友就在旁边故意添乱，画面一下子被他们闹得乱七八糟。\n\n水花、尖叫、机器运转的声音和笑声混在一起，旋转设施把灯光和人影搅成一圈一圈。戴眼镜、手里拿着棉花糖的高个子男孩本来还站在旁边看热闹，下一秒就被朋友拖进镜头里，几个人挤在一起笑，连拍摄的人都被撞得往后退了两步。\n\n天色慢慢暗下来，游乐园的灯一盏一盏亮起来。戴着毛绒发箍的女孩抱着玩偶站在发光的旋转木马旁边，转头朝镜头这边挥了挥手，穿粉色外套的朋友又从后面扑上来抱住她，所有人的笑声还留在这一天的边缘，吵闹得刚刚好。',caption:'오늘 애들 웃는 거 보느라 나도 하루 종일 웃었다 ㅋㅋ 🎡',captionTranslation:'今天光是看他们笑，我自己也跟着笑了一整天ㅋㅋ 🎡',sourceLanguage:'ko',tags:['#dayoff','#amusementpark','#withfriends']}],
+comments:{
+reel_kamakura_01:[
+{initial:'?',author:'natsu.zip',text:'この時間の鎌倉ほんとに好き',translation:'真的很喜欢镰仓这个时间',translated:false},
+{initial:'?',author:'melo__21',text:'the train passing by the sea 😭',translation:'电车从海边经过的画面 😭',translated:false},
+{initial:'?',author:'yuuki.log',text:'夏終わらないでほしい',translation:'希望夏天不要结束',translated:false},
+{initial:'?',author:'cloudyday_8',text:'这里傍晚真的会让人舍不得走',translation:'',translated:false},
+{initial:'?',author:'00sora',text:'この動画ずっと見てられる…',translation:'这个视频可以一直看下去…',translated:false}],
+reel_amusement_01:[
+{initial:'?',author:'yena.03',text:'놀이공원 에너지 미쳤다 ㅋㅋ',translation:'游乐园这个能量也太疯了ㅋㅋ',translated:false},
+{initial:'?',author:'peachfilm',text:'the way everyone kept running into frame 😭',translation:'所有人不停冲进镜头的样子 😭',translated:false},
+{initial:'?',author:'minji.zip',text:'저 인형 누가 결국 가져갔어',translation:'那个玩偶最后到底谁拿走了',translated:false},
+{initial:'?',author:'cloudroom_',text:'看得我也想和朋友出去疯一天',translation:'',translated:false},
+{initial:'?',author:'sora.wav',text:'마지막에 다같이 웃는 느낌 너무 좋다',translation:'最后大家一起笑的感觉太好了',translated:false}]
+}};
 
 function getReelsV15Item(id){
   return reelsV15State.items.find(item=>item.id===id) || null;
