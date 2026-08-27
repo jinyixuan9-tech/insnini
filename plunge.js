@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：INS
-// 版本：1.2.0（DM 双向分享卡 / 可点详情 / 评论增量）
+// 版本：1.2.1（DM 分享一致性修复）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.2.0';
+  const VERSION = '1.2.1';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   const DM_SHARE_V120_STYLE = `
@@ -2764,14 +2764,76 @@ function createActorDMOnlyShare(actorId,type,data={}){
   const description=String(type==='reel'?(data.videoDescription??data.mediaDescription??'随手短视频'):(data.mediaDescription??data.mediaItems?.[0]?.mediaDescription??'生活随手记录'));
   return makeDMContextCard(type==='reel'?'reel':'post',{postId:`dm_only_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,author,displayName:String(data.displayName||data.actor?.displayName||author),caption,captionTranslation:String(data.captionTranslation||''),mediaUrl:type==='feed'?String(data.mediaUrl||data.mediaItems?.[0]?.mediaUrl||''):'',mediaDescription:description,mediaClass:'m1',senderId:actorId,source:'dm_only',contentType:type,sourceLanguage:String(data.sourceLanguage||''),location:String(data.location||''),tags:Array.isArray(data.tags)?data.tags:[],metrics:data.metrics||{},comments:(Array.isArray(data.initialComments)?data.initialComments:[]).slice(0,5).map(normalizeDMShareCommentRow)});
 }
+function detectDMRequestedShareType(text=''){
+  const t=String(text||'').toLowerCase();
+  if(/reel|短视频|视频/.test(t))return 'reel';
+  if(/feed|ig|instagram|动态|帖子/.test(t))return 'feed';
+  return '';
+}
+function looksLikeDMAffirmativeShareReply(rows=[]){
+  const text=(Array.isArray(rows)?rows:[]).map(row=>String(row?.textOriginal??row?.text??'')).join(' ').trim();
+  if(!text)return false;
+  return /(喏|给你|发你|分享给你|这个呢|你看这个|看这个|找到了|就这个|这个可以|这个给你|刷到一个|我发一个|我发给你)/i.test(text)
+    && !/(不发|不给|不想发|懒得发|下次再说|以后再说|才不给|不行|拒绝)/i.test(text);
+}
+function extractDMShareDecision(data,rows=[]){
+  if(!data||typeof data!=='object')return null;
+  const candidates=[data.share,data.dmShare,data.shareDecision,data.share_action];
+  for(const candidate of candidates){if(candidate&&typeof candidate==='object')return {...candidate};}
+  for(const row of (Array.isArray(rows)?rows:[])){
+    const candidate=row?.share||row?.dmShare||row?.shareDecision;
+    if(candidate&&typeof candidate==='object')return {...candidate};
+  }
+  return null;
+}
+function repairDMShareDecisionForExplicitRequest(actorId,share,lastUserText,rows=[]){
+  const id=normalizeSocialActorId(actorId);
+  const requestedType=detectDMRequestedShareType(lastUserText);
+  const all=getDMShareCandidates(id,30);
+  const pick=(type='')=>all.find(row=>!type||row.contentType===type)||null;
+  let next=share&&typeof share==='object'?{...share}:null;
+
+  // If the character literally says they are sending something now, the UI must not end with text-only.
+  if(!next && looksLikeDMAffirmativeShareReply(rows)){
+    const candidate=pick(requestedType);
+    if(candidate)next={decision:'share',source:'linked',contentType:candidate.contentType,contentId:candidate.contentId,relevance:1};
+  }
+  if(!next)return null;
+  const decision=String(next.decision||next.action||'none').toLowerCase();
+  if(decision!=='share')return next;
+  let type=String(next.contentType||next.type||requestedType||'').toLowerCase();
+  if(type!=='feed'&&type!=='reel')type=pick(requestedType)?.contentType||'';
+  if(!type)return {...next,decision:'defer'};
+  next.contentType=type;
+  let source=String(next.source||'linked').toLowerCase();
+  if(!['linked','dm_only','own_publish'].includes(source))source='linked';
+  next.source=source;
+
+  if(source==='linked'){
+    const valid=all.find(row=>String(row.contentId)===String(next.contentId||'')&&row.contentType===type);
+    if(!valid){
+      const fallback=pick(type);
+      if(fallback)next.contentId=fallback.contentId;
+      else return {...next,decision:'defer'};
+    }
+  }else if(source==='dm_only'){
+    const content=next.content&&typeof next.content==='object'?next.content:{};
+    const hasUseful=String(content.captionOriginal??content.captionZh??content.caption??content.videoDescription??content.mediaDescription??'').trim();
+    if(!hasUseful){
+      const fallback=pick(type);
+      if(fallback)next={...next,source:'linked',contentId:fallback.contentId};
+    }
+  }
+  return next;
+}
 function applyActorDMShareDecision(actorId,share,userRequested){
   if(!share||typeof share!=='object')return false;
   const decision=String(share.decision||share.action||'none').toLowerCase();
   const id=normalizeSocialActorId(actorId);const state=dmShareIntentState[id]||{pending:0};
   if(decision==='defer'||decision==='refuse'){state.pending=Math.min(3,(Number(state.pending)||0)+1);dmShareIntentState[id]=state;persistDMShareIntentState();return false;}
   if(decision!=='share')return false;
-  const relevance=Math.max(0,Math.min(1,Number(share.relevance)||0.55));
-  if(!userRequested){const chance=Math.min(.72,.10+relevance*.34+(Number(state.pending)||0)*.16);if(Math.random()>chance)return false;}
+  // v1.2.1: once AI has decided "share", do not run a second random veto here.
+  // The unsolicited probability gate happens BEFORE the AI response so text and card cannot disagree.
   const rawType=String(share.contentType||share.type||'').toLowerCase();
   if(rawType!=='feed'&&rawType!=='reel')return false;
   const type=rawType;
@@ -2806,14 +2868,19 @@ async function dmSummonAI(){
     const userRequestedShare=detectDMExplicitShareRequest(lastUserText);
     const shareState=dmShareIntentState[actorId]||{pending:0};
     const shareCandidates=getDMShareCandidates(actorId,12);
-    const result=await callNiniINSAI(INS_AI_TASKS.DM_REPLY,{actorIds:actorId?[actorId]:[],ownerId:actorId,surface:'dm',content:{recentMessages:recent,sharedCards:(dmSharedCards[currentDMChat]||[]).slice(-4),socialContext:typeof getDMModelContext==='function'?getDMModelContext(actorId,8):[],dmShare:{userRequestedShare,pendingInterest:Number(shareState.pending)||0,candidates:shareCandidates,policy:'You may occasionally share one Feed/Reel when it fits the conversation and your personality. Never share Story. linked must use one candidate contentId. dm_only creates a card that exists only in this DM. own_publish means you personally publish it first, so it will also appear on your profile and the real Feed/Reels. If User explicitly asks, you still may comply, defer, tease, or refuse according to personality; use decision=defer when you do not share now but may be more likely later. Unsolicited shares should be rare and context-relevant.'}}});
+    const unsolicitedChance=Math.min(.72,.10+(Number(shareState.pending)||0)*.16);
+    const allowShareNow=userRequestedShare||Math.random()<unsolicitedChance;
+    const result=await callNiniINSAI(INS_AI_TASKS.DM_REPLY,{actorIds:actorId?[actorId]:[],ownerId:actorId,surface:'dm',content:{recentMessages:recent,sharedCards:(dmSharedCards[currentDMChat]||[]).slice(-4),socialContext:typeof getDMModelContext==='function'?getDMModelContext(actorId,8):[],dmShare:{userRequestedShare,pendingInterest:Number(shareState.pending)||0,allowShareNow,candidates:shareCandidates,policy:'You may occasionally share one Feed/Reel when it fits the conversation and your personality. Never share Story. IMPORTANT: if allowShareNow=false and User did not explicitly request a share, do NOT say or imply that you are sending/sharing a post now and return decision=none. If you decide to share now, you MUST return share.decision=share together with a valid card payload; never write a message like “here, this one / I sent it” without the share object. linked must use one candidate contentId. dm_only creates a card that exists only in this DM. own_publish means you personally publish it first, so it will also appear on your profile and the real Feed/Reels. If User explicitly asks, you still may comply, defer, tease, or refuse according to personality; use decision=defer when you do not share now but may be more likely later.'}}});
     if(!result.ok)throw new Error(result.reason||'AI 回复失败');
     const rows=Array.isArray(result.data?.messages)?result.data.messages:(result.data?.reply?[result.data.reply]:[]);
-    const share=result.data?.share||rows.find(row=>row&&row.share)?.share||null;
+    let share=extractDMShareDecision(result.data,rows);
+    if(userRequestedShare)share=repairDMShareDecisionForExplicitRequest(actorId,share,lastUserText,rows);
+    if(!userRequestedShare&&!allowShareNow&&share&&String(share.decision||share.action||'none').toLowerCase()==='share')share={decision:'none'};
     if(!rows.length&&!share)throw new Error('AI 没有返回 messages');
-    rows.slice(0,4).forEach(row=>{const text=String(row.textOriginal??row.text??'').trim();if(text)addDMMessage(currentDMChat,'them',text,String(row.textTranslation??row.translation??'').trim());});
     const pendingBefore=Number((dmShareIntentState[actorId]||{}).pending)||0;
     const didShare=applyActorDMShareDecision(actorId,share,userRequestedShare);
+    // Render text after the card decision. This prevents a rejected/invalid share from being presented as already sent.
+    rows.slice(0,4).forEach(row=>{const text=String(row.textOriginal??row.text??'').trim();if(!text)return;if(userRequestedShare&&looksLikeDMAffirmativeShareReply([row])&&!didShare)return;addDMMessage(currentDMChat,'them',text,String(row.textTranslation??row.translation??'').trim());});
     if(userRequestedShare&&!didShare&&(Number((dmShareIntentState[actorId]||{}).pending)||0)===pendingBefore){const state=dmShareIntentState[actorId]||{pending:0};state.pending=Math.min(3,(Number(state.pending)||0)+1);dmShareIntentState[actorId]=state;persistDMShareIntentState();}
   }catch(error){alert('INS 私信 AI 调用失败：'+(error?.message||error));}
   finally{typing?.classList.remove('show');if(plane){plane.disabled=false;plane.removeAttribute('aria-busy');}dmAIReplyInFlight=false;}
@@ -12665,7 +12732,7 @@ startINSAutoPublishTimer();
       direct_comment_reply:
         '返回 {reply:{actorId,author,textOriginal,textTranslation,sourceLanguage,replyToActorId}}。',
       dm_reply:
-        '返回 {messages:[{textOriginal,textTranslation,sourceLanguage}],share?:{decision:"share|defer|none",source:"linked|dm_only|own_publish",contentType:"feed|reel",contentId?:"候选ID",relevance?:0-1,content?:{author,displayName,caption,captionOriginal,captionZh,captionTranslation,sourceLanguage,mediaDescription,mediaUrl,videoDescription,location,tags,metrics,initialComments}}}。通常 1-4 条短消息。绝不返回 Story 分享。linked 必须使用 dmShare.candidates 中真实 contentId；dm_only 不进入主页/Feed/Reels；own_publish 表示当前角色本人真实发布后再分享。User 主动请求时仍根据人物性格决定是否立即执行；若暂时不分享可 decision=defer。',
+        '返回 {messages:[{textOriginal,textTranslation,sourceLanguage}],share?:{decision:"share|defer|none",source:"linked|dm_only|own_publish",contentType:"feed|reel",contentId?:"候选ID",relevance?:0-1,content?:{author,displayName,caption,captionOriginal,captionZh,captionTranslation,sourceLanguage,mediaDescription,mediaUrl,videoDescription,location,tags,metrics,initialComments}}}。通常 1-4 条短消息。绝不返回 Story 分享。linked 必须使用 dmShare.candidates 中真实 contentId；dm_only 不进入主页/Feed/Reels；own_publish 表示当前角色本人真实发布后再分享。User 主动请求时仍根据人物性格决定是否立即执行；若暂时不分享可 decision=defer。若回复文字表达“已经发/给你看这个/喏这个”等立即分享语义，则必须同时返回 share.decision=share 与可渲染卡片数据，禁止只说发送却不返回 share。',
       stranger_dm_refresh:
         '返回 {requests:[{handle,displayName,initial,language,region,source,textOriginal,textTranslation,sourceLanguage}]}，数量遵循 batchSize。每个陌生请求都必须按当前 world/network-culture 规则生成自洽的 handle + displayName + region + language/sourceLanguage；账号命名遵循其地区真实网络习惯，语言由该陌生人身份决定。全球来源、合理发现路径、正常陌生距离。',
       guestbook_refresh:
