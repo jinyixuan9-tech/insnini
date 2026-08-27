@@ -9765,83 +9765,94 @@ function installINSImageSettingsUI(){
   const card=document.getElementById('profileImagePromptCard');
   const cardTitle=card?.querySelector('.profile-setting-head strong');
   if(cardTitle)cardTitle.textContent='生图设置';
+  const originalFirstBlock=card?.querySelector('.profile-setting-block');
+  const priorityNote=originalFirstBlock?.querySelector('.profile-setting-notebox');
+  if(priorityNote)priorityNote.innerHTML='INS 不读取或保存 Roche 内部的 URL、Key、渠道和模型。生图时直接调用 <b>roche.ai.generateImage</b>；实际提示词由 <b>INS 提示词（如有）+ INS 生图规则 + AI 图片描述</b> 组成。';
   if(card&&!document.getElementById('insRocheImageApiBlock')){
-    const firstBlock=card.querySelector('.profile-setting-block');
-    firstBlock?.insertAdjacentHTML('beforebegin',`
+    originalFirstBlock?.insertAdjacentHTML('beforebegin',`
       <div class="profile-setting-block" id="insRocheImageApiBlock">
-        <label class="profile-setting-label">Roche 生图 API</label>
-        <div class="profile-setting-notebox" id="insRocheImageApiStatus">正在读取 Roche 当前生图配置…</div>
+        <label class="profile-setting-label">Roche 生图功能</label>
+        <div class="profile-setting-notebox" id="insRocheImageApiStatus">正在检测 roche.ai.generateImage…</div>
+        <button class="profile-subapi-mini ins-image-api-refresh" id="insRocheImageApiRefresh" type="button">重新检测 Roche 生图功能</button>
       </div>
-      <div class="profile-setting-block ins-image-api-field">
-        <label class="profile-setting-label" for="insRocheImageApiChannel">当前渠道</label>
-        <input class="profile-setting-input" id="insRocheImageApiChannel" readonly value="正在读取…"/>
-      </div>
-      <div class="profile-setting-block ins-image-api-field">
-        <label class="profile-setting-label" for="insRocheImageApiEndpoint">Base URL 或接口地址</label>
-        <input class="profile-setting-input" id="insRocheImageApiEndpoint" readonly value="正在读取…"/>
-      </div>
-      <div class="profile-setting-block ins-image-api-field">
-        <label class="profile-setting-label" for="insRocheImageApiModel">模型</label>
-        <input class="profile-setting-input" id="insRocheImageApiModel" readonly value="正在读取…"/>
-      </div>
-      <div class="profile-setting-block">
-        <div class="profile-setting-notebox">这里自动读取 Roche 当前生图配置，不需要在 INS 再填 URL 或 Key，也不会建立副生图 API。Roche 未向插件公开的敏感信息不会显示。</div>
-        <button class="profile-subapi-mini ins-image-api-refresh" id="insRocheImageApiRefresh" type="button">重新读取 Roche 生图配置</button>
+      <div class="profile-setting-block" id="insImageGenerationTestBlock">
+        <label class="profile-setting-label" for="insImageGenerationTestPrompt">测试生图</label>
+        <textarea class="profile-setting-textarea" id="insImageGenerationTestPrompt" placeholder="输入一段测试图片描述">窗边的一杯咖啡和一本打开的书，真实自然的手机随手拍</textarea>
+        <div class="profile-setting-notebox ins-image-test-note">测试会直接调用 Roche 当前的生图功能。成功后图片会显示在下方，不会发布到 Feed 或 Story。</div>
+        <button class="profile-setting-save" id="insImageGenerationTestBtn" type="button">测试生图</button>
+        <div class="ins-image-test-result" id="insImageGenerationTestResult" hidden></div>
+        <div class="ins-image-test-preview" id="insImageGenerationTestPreview" hidden>
+          <img id="insImageGenerationTestImage" alt="生图测试结果"/>
+        </div>
       </div>`);
   }
-}
-function formatINSRocheImageEndpoint(value=''){
-  return String(value||'').trim().replace(/([?#]).*$/,'').replace(/\/\/[^/@\s]+@/,'//');
-}
-function setINSRocheImageApiField(id,value,fallback='未读取到'){
-  const input=document.getElementById(id);
-  if(!input)return;
-  const display=String(value||'').trim()||fallback;
-  input.value=display;
-  input.title=display;
 }
 async function refreshINSRocheImageApiStatus(){
   installINSImageSettingsUI();
   const status=document.getElementById('insRocheImageApiStatus');
   const refresh=document.getElementById('insRocheImageApiRefresh');
   const drawerLabel=document.getElementById('drawerImageSettingsLabel');
-  if(status)status.textContent='正在读取 Roche 当前生图配置…';
-  if(refresh){refresh.disabled=true;refresh.textContent='读取中…';}
-  setINSRocheImageApiField('insRocheImageApiChannel','正在读取…');
-  setINSRocheImageApiField('insRocheImageApiEndpoint','正在读取…');
-  setINSRocheImageApiField('insRocheImageApiModel','正在读取…');
+  if(status)status.textContent='正在检测 Roche 生图功能…';
+  if(refresh){refresh.disabled=true;refresh.textContent='检测中…';}
   try{
     const bridge=getRocheImageBridge();
     if(!bridge){
       if(status)status.textContent='未检测到 Roche 生图接口。请先在 Roche 完成生图配置。';
-      if(drawerLabel)drawerLabel.textContent='未检测到 Roche 生图 API';
-      setINSRocheImageApiField('insRocheImageApiChannel','','未连接');
-      setINSRocheImageApiField('insRocheImageApiEndpoint','','未连接');
-      setINSRocheImageApiField('insRocheImageApiModel','','未连接');
-      return null;
+      if(drawerLabel)drawerLabel.textContent='未检测到 Roche 生图功能';
+      return {available:false,route:''};
     }
-    const config=await getRocheImageConfigSnapshot();
-    const linked=!!(config?.raw||config?.channel||config?.endpoint||config?.model);
-    if(linked){
-      if(status)status.textContent='已自动关联 Roche 当前生图 API。INS 的生图按钮会继续使用这套配置。';
-      if(drawerLabel)drawerLabel.textContent=`已关联 · ${config.model||config.channel||'Roche 当前生图配置'}`;
+    let capability=null;
+    try{capability=await bridge.getImageCapability?.();}catch(error){}
+    if(!capability){
+      const route=typeof bridge.ai?.generateImage==='function'?'roche.ai.generateImage':typeof bridge.generateImage==='function'?'Roche 生图桥接':typeof bridge.image?.generate==='function'?'Roche image.generate':'';
+      capability={available:!!route,route};
+    }
+    if(capability.available){
+      const route=String(capability.route||'roche.ai.generateImage');
+      if(status)status.textContent=`已关联 Roche 当前生图功能 · ${route}`;
+      if(drawerLabel)drawerLabel.textContent='已关联 Roche 生图功能';
     }else{
-      if(status)status.textContent='已连接 Roche 生图桥接，但 Roche 暂未返回可显示的渠道、地址或模型信息。';
-      if(drawerLabel)drawerLabel.textContent='已连接 Roche · 暂未读取到配置';
+      if(status)status.textContent='当前 Roche 没有提供可用的生图函数。请先在 Roche 完成生图配置。';
+      if(drawerLabel)drawerLabel.textContent='Roche 生图功能不可用';
     }
-    setINSRocheImageApiField('insRocheImageApiChannel',config?.channel,linked?'Roche 当前渠道':'未读取到');
-    setINSRocheImageApiField('insRocheImageApiEndpoint',formatINSRocheImageEndpoint(config?.endpoint),linked?'由 Roche 内部管理':'未读取到');
-    setINSRocheImageApiField('insRocheImageApiModel',config?.model,linked?'Roche 当前模型':'未读取到');
-    return config;
+    return capability;
   }catch(error){
-    if(status)status.textContent='读取 Roche 生图配置失败：'+String(error?.message||error||'未知错误');
-    if(drawerLabel)drawerLabel.textContent='Roche 生图配置读取失败';
-    setINSRocheImageApiField('insRocheImageApiChannel','','读取失败');
-    setINSRocheImageApiField('insRocheImageApiEndpoint','','读取失败');
-    setINSRocheImageApiField('insRocheImageApiModel','','读取失败');
-    return null;
+    if(status)status.textContent='检测 Roche 生图功能失败：'+String(error?.message||error||'未知错误');
+    if(drawerLabel)drawerLabel.textContent='Roche 生图功能检测失败';
+    return {available:false,route:''};
   }finally{
-    if(refresh){refresh.disabled=false;refresh.textContent='重新读取 Roche 生图配置';}
+    if(refresh){refresh.disabled=false;refresh.textContent='重新检测 Roche 生图功能';}
+  }
+}
+async function runINSImageGenerationTest(){
+  const prompt=String(document.getElementById('insImageGenerationTestPrompt')?.value||'').trim();
+  const button=document.getElementById('insImageGenerationTestBtn');
+  const result=document.getElementById('insImageGenerationTestResult');
+  const preview=document.getElementById('insImageGenerationTestPreview');
+  const image=document.getElementById('insImageGenerationTestImage');
+  if(!prompt){
+    if(result){result.hidden=false;result.textContent='请先填写测试图片描述。';result.dataset.state='error';}
+    return;
+  }
+  insImagePromptSettings.descriptionLanguage=document.getElementById('insImagePromptLanguage')?.value||'zh';
+  insImagePromptSettings.positive=document.getElementById('insImagePromptPositive')?.value.trim()||'';
+  insImagePromptSettings.negative=document.getElementById('insImagePromptNegative')?.value.trim()||'';
+  if(button){button.disabled=true;button.textContent='生成中…';}
+  if(result){result.hidden=false;result.textContent='正在调用 Roche 生图功能…';result.dataset.state='loading';}
+  if(preview)preview.hidden=true;
+  if(image)image.removeAttribute('src');
+  try{
+    const generated=await requestRocheGeneratedImage({description:prompt,entry:'settings_test'});
+    if(!generated?.url)throw new Error('no_image_url');
+    if(image)image.src=generated.url;
+    if(preview)preview.hidden=false;
+    if(result){result.textContent='测试成功，已收到 Roche 返回的图片。';result.dataset.state='success';}
+  }catch(error){
+    const reason=String(error?.message||error||'未知错误');
+    const message=reason==='bridge_not_connected'?'未连接到 Roche 生图功能。':reason==='image_generation_unavailable'?'Roche 当前没有可用的生图函数。':reason==='no_image_url'?'Roche 已响应，但没有返回可显示的图片地址。':`测试失败：${reason}`;
+    if(result){result.hidden=false;result.textContent=message;result.dataset.state='error';}
+  }finally{
+    if(button){button.disabled=false;button.textContent='测试生图';}
   }
 }
 function openImagePromptSettings(){
@@ -9865,7 +9876,7 @@ function getINSImagePromptConfig(){
   const negative=(insImagePromptSettings.negative||'').trim();
   return {
     descriptionLanguage:insImagePromptSettings.descriptionLanguage||'zh',
-    source:(positive||negative)?'ins_override':'inherit_roche_global',
+    source:(positive||negative)?'ins_override':'roche_direct',
     positivePrompt:positive,
     negativePrompt:negative
   };
@@ -9936,31 +9947,26 @@ function buildINSImageGenerationRequest({description='',entry='feed',count=1}={}
   const cfg=getINSImagePromptConfig();
   const internalPositive=getINSImageInternalPositive(entry);
   const internalNegative=getINSImageInternalNegative(entry);
-  return getRocheImageConfigSnapshot().then(rocheCfg=>{
-    const basePositive=(cfg.positivePrompt||'').trim() || (rocheCfg.positivePrompt||'').trim();
-    const baseNegative=(cfg.negativePrompt||'').trim() || (rocheCfg.negativePrompt||'').trim();
-    const finalPositive=[basePositive,internalPositive,cleanDesc].filter(Boolean).join('\n');
-    const finalNegative=[baseNegative,internalNegative].filter(Boolean).join('\n');
-    const payload={
-      prompt:finalPositive,
-      description:cleanDesc,
-      positivePrompt:finalPositive,
-      negativePrompt:finalNegative,
-      entry,
-      count:Math.max(1,Number(count)||1),
-      aspectRatio:'1:1',
-      meta:{
-        source:'ins',
-        plugin:'INS',
-        routingSource:cfg.source,
-        descriptionLanguage:cfg.descriptionLanguage||'zh',
-        rocheChannel:rocheCfg.channel||'',
-        rocheEndpoint:rocheCfg.endpoint||'',
-        rocheModel:rocheCfg.model||''
-      }
-    };
-    return {payload,rocheCfg};
-  });
+  const basePositive=(cfg.positivePrompt||'').trim();
+  const baseNegative=(cfg.negativePrompt||'').trim();
+  const finalPositive=[basePositive,internalPositive,cleanDesc].filter(Boolean).join('\n');
+  const finalNegative=[baseNegative,internalNegative].filter(Boolean).join('\n');
+  const payload={
+    prompt:finalPositive,
+    description:cleanDesc,
+    positivePrompt:finalPositive,
+    negativePrompt:finalNegative,
+    entry,
+    count:Math.max(1,Number(count)||1),
+    aspectRatio:'1:1',
+    meta:{
+      source:'ins',
+      plugin:'INS',
+      routingSource:cfg.source,
+      descriptionLanguage:cfg.descriptionLanguage||'zh'
+    }
+  };
+  return {payload};
 }
 function normalizeGeneratedImageUrl(value){
   if(!value)return '';
@@ -9997,7 +10003,7 @@ async function requestRocheGeneratedImage({description='',entry='feed',count=1}=
   if(!cleanDesc)throw new Error('missing_description');
   const bridge=getRocheImageBridge();
   if(!bridge)throw new Error('bridge_not_connected');
-  const {payload,rocheCfg}=await buildINSImageGenerationRequest({description:cleanDesc,entry,count});
+  const {payload}=buildINSImageGenerationRequest({description:cleanDesc,entry,count});
   const calls=[
     ()=>bridge.generateImage?.(payload),
     ()=>bridge.image?.generate?.(payload),
@@ -10012,7 +10018,7 @@ async function requestRocheGeneratedImage({description='',entry='feed',count=1}=
     try{
       const result=await fn();
       const url=extractGeneratedImageUrl(result);
-      if(url)return {url,result,request:payload,config:rocheCfg};
+      if(url)return {url,result,request:payload};
       lastError=new Error('no_image_url');
     }catch(error){lastError=error;}
   }
@@ -10496,6 +10502,7 @@ document.getElementById('profileImagePromptClose')?.addEventListener('click', cl
 document.getElementById('profileImagePromptCard')?.addEventListener('pointerup',event=>event.stopPropagation());
 document.getElementById('profileImagePromptCard')?.addEventListener('click',event=>event.stopPropagation());
 document.getElementById('insRocheImageApiRefresh')?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();void refreshINSRocheImageApiStatus();});
+document.getElementById('insImageGenerationTestBtn')?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();void runINSImageGenerationTest();});
 document.getElementById('profileImagePromptSave')?.addEventListener('click',()=>{
   insImagePromptSettings.descriptionLanguage=document.getElementById('insImagePromptLanguage').value||'zh';
   insImagePromptSettings.positive=document.getElementById('insImagePromptPositive').value.trim();
@@ -12868,6 +12875,11 @@ startINSAutoPublishTimer();
   }
 
   function createRocheBridge(roche) {
+    const toRocheImageArgs = payload => {
+      const prompt=String(payload?.prompt||payload?.positivePrompt||'').trim();
+      const negativePrompt=String(payload?.negativePrompt||'').trim();
+      return negativePrompt?{prompt,negativePrompt}:{prompt};
+    };
     return {
       async listConversationsForActor(actorId) {
         if (!roche || !roche.conversation || !roche.conversation.list) return [];
@@ -12920,6 +12932,15 @@ startINSAutoPublishTimer();
             : []
       },
 
+      getImageCapability() {
+        if (roche && roche.ai && typeof roche.ai.generateImage === 'function') return { available:true, route:'roche.ai.generateImage' };
+        if (roche && roche.image && typeof roche.image.generate === 'function') return { available:true, route:'roche.image.generate' };
+        if (roche && roche.images && typeof roche.images.generate === 'function') return { available:true, route:'roche.images.generate' };
+        if (roche && typeof roche.generateImage === 'function') return { available:true, route:'roche.generateImage' };
+        if (roche && typeof roche.invoke === 'function') return { available:true, route:'roche.invoke(image.generate)' };
+        return { available:false, route:'' };
+      },
+
       async getImageConfig() {
         if (roche && roche.ai && typeof roche.ai.getImageConfig === 'function') return await roche.ai.getImageConfig();
         if (roche && roche.image && typeof roche.image.getConfig === 'function') return await roche.image.getConfig();
@@ -12930,7 +12951,7 @@ startINSAutoPublishTimer();
       },
 
       async generateImage(payload) {
-        if (roche && roche.ai && typeof roche.ai.generateImage === 'function') return await roche.ai.generateImage(payload);
+        if (roche && roche.ai && typeof roche.ai.generateImage === 'function') return await roche.ai.generateImage(toRocheImageArgs(payload));
         if (roche && roche.image && typeof roche.image.generate === 'function') return await roche.image.generate(payload);
         if (roche && roche.images && typeof roche.images.generate === 'function') return await roche.images.generate(payload);
         if (roche && typeof roche.generateImage === 'function') return await roche.generateImage(payload);
@@ -12948,7 +12969,7 @@ startINSAutoPublishTimer();
           return null;
         },
         generate: async payload => {
-          if (roche && roche.ai && typeof roche.ai.generateImage === 'function') return await roche.ai.generateImage(payload);
+          if (roche && roche.ai && typeof roche.ai.generateImage === 'function') return await roche.ai.generateImage(toRocheImageArgs(payload));
           if (roche && roche.image && typeof roche.image.generate === 'function') return await roche.image.generate(payload);
           if (roche && roche.images && typeof roche.images.generate === 'function') return await roche.images.generate(payload);
           if (roche && typeof roche.generateImage === 'function') return await roche.generateImage(payload);
@@ -13282,9 +13303,16 @@ startINSAutoPublishTimer();
 #profileFeedTranslationApiCard .profile-setting-notebox{word-break:break-word}
 #profileFeedTranslationApiCard .profile-setting-save{margin-top:14px}
 #profileImagePromptCard .profile-setting-notebox{word-break:break-word}
-#profileImagePromptCard .profile-setting-input[readonly]{background:rgba(255,255,255,.66);color:#555f6b;cursor:default}
 #profileImagePromptCard .ins-image-api-refresh{width:100%;height:38px;margin-top:10px}
 #profileImagePromptCard .profile-setting-save{margin-top:14px}
+#profileImagePromptCard #insImageGenerationTestBtn{width:100%}
+#profileImagePromptCard .ins-image-test-note{margin-top:9px}
+#profileImagePromptCard .ins-image-test-result{margin-top:10px;padding:10px 12px;border-radius:13px;background:#eef1f5;color:#59616c;font-size:12px;line-height:1.5}
+#profileImagePromptCard .ins-image-test-result[data-state="success"]{background:#e9f7ee;color:#207342}
+#profileImagePromptCard .ins-image-test-result[data-state="error"]{background:#fff0f0;color:#b44242}
+#profileImagePromptCard .ins-image-test-result[hidden],#profileImagePromptCard .ins-image-test-preview[hidden]{display:none!important}
+#profileImagePromptCard .ins-image-test-preview{margin-top:10px;overflow:hidden;border-radius:16px;background:#e8eaee;aspect-ratio:1/1}
+#profileImagePromptCard .ins-image-test-preview img{display:block;width:100%;height:100%;object-fit:cover}
 `);
       style.textContent += `
 .nini-ins-native-host,.nini-ins-root{
