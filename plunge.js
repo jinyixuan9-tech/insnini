@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：INS
-// 版本：1.2.1（DM 分享一致性修复）
+// 版本：1.2.2（DM 分享加载气泡 + 显式分享兜底修复）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.2.1';
+  const VERSION = '1.2.2';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   const DM_SHARE_V120_STYLE = `
@@ -34,6 +34,12 @@
 .dm-share-detail-body-v120{padding:13px 14px}.dm-share-detail-caption-v120{font-size:12px;line-height:1.62;white-space:pre-wrap}.dm-share-detail-meta-v120{margin-top:7px;font-size:9px;color:#92969d}.dm-share-detail-v120.reel .dm-share-detail-meta-v120{color:#8a8c92}
 .dm-share-comments-head-v120{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid #eceef2}.dm-share-detail-v120.reel .dm-share-comments-head-v120{border-color:#22242a}.dm-share-comments-head-v120 strong{font-size:12px}.dm-share-comment-v120{padding:10px 0;border-bottom:1px solid #eef0f3}.dm-share-detail-v120.reel .dm-share-comment-v120{border-color:#1f2024}.dm-share-comment-v120 b{font-size:10px}.dm-share-comment-v120 p{margin:4px 0 0;font-size:11px;line-height:1.45}.dm-share-comment-translation-v120{margin-top:4px;font-size:9px;line-height:1.4;color:#8b9097}.dm-share-detail-v120.reel .dm-share-comment-translation-v120{color:#9c9fa5}
 .dm-share-load-v120{width:100%;height:40px;margin:12px 0 4px;border:0;border-radius:12px;background:#f0f1f4;color:#666b73;font-size:11px;font-weight:800;cursor:pointer}.dm-share-detail-v120.reel .dm-share-load-v120{background:#18191d;color:#f2f2f4}.dm-share-load-v120:disabled{opacity:.58}
+.dm-share-pending-v122{display:flex;align-items:flex-start;gap:8px;margin:6px 0 2px;padding-right:52px}
+.dm-share-pending-v122 .dm-msg-avatar{flex:0 0 auto}
+.dm-share-pending-bubble-v122{height:34px;min-width:48px;padding:0 12px;border-radius:8px 16px 16px 16px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px}
+.dm-share-pending-dot-v122{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;animation:dmSharePendingDotV122 1s infinite ease-in-out}
+.dm-share-pending-dot-v122:nth-child(2){animation-delay:.14s}.dm-share-pending-dot-v122:nth-child(3){animation-delay:.28s}
+@keyframes dmSharePendingDotV122{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-3px);opacity:1}}
 `;
 
   let ACTIVE_DIRECT_HOST = null;
@@ -2793,10 +2799,18 @@ function repairDMShareDecisionForExplicitRequest(actorId,share,lastUserText,rows
   const pick=(type='')=>all.find(row=>!type||row.contentType===type)||null;
   let next=share&&typeof share==='object'?{...share}:null;
 
-  // If the character literally says they are sending something now, the UI must not end with text-only.
-  if(!next && looksLikeDMAffirmativeShareReply(rows)){
+  // v1.2.2: if the character literally says they are sending something now, force a real card fallback.
+  // This also repairs contradictory AI payloads such as decision=none/defer + “喏，这个呢”.
+  if(looksLikeDMAffirmativeShareReply(rows)){
     const candidate=pick(requestedType);
-    if(candidate)next={decision:'share',source:'linked',contentType:candidate.contentType,contentId:candidate.contentId,relevance:1};
+    if(candidate){
+      const currentDecision=String(next?.decision||next?.action||'').toLowerCase();
+      const currentSource=String(next?.source||'linked').toLowerCase();
+      const hasRenderableOwn=next&&currentDecision==='share'&&['dm_only','own_publish'].includes(currentSource)&&next.content&&typeof next.content==='object';
+      if(!hasRenderableOwn){
+        next={...(next||{}),decision:'share',source:'linked',contentType:candidate.contentType,contentId:candidate.contentId,relevance:1};
+      }
+    }
   }
   if(!next)return null;
   const decision=String(next.decision||next.action||'none').toLowerCase();
@@ -2850,6 +2864,27 @@ function applyActorDMShareDecision(actorId,share,userRequested){
 document.getElementById('dmChatMessages')?.addEventListener('click',event=>{const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;openDMShareCardDetail(card.dataset.dmShareCard);});
 document.getElementById('dmChatMessages')?.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;event.preventDefault();openDMShareCardDetail(card.dataset.dmShareCard);});
 
+function showDMSharePendingBubbleV122(recipient){
+  const box=document.getElementById('dmChatMessages');
+  if(!box||!recipient)return null;
+  removeDMSharePendingBubbleV122();
+  const profile=getDMProfile(recipient);
+  const row=document.createElement('div');
+  row.id='dmSharePendingBubbleV122';
+  row.className='dm-share-pending-v122';
+  row.innerHTML=`<div class="dm-msg-avatar" data-identity-avatar="${escapeDMCardHTML(profile.identityId||profile.handle||recipient)}">${profile.avatarUrl?'':escapeDMCardHTML(profile.initial||'?')}</div><div class="dm-share-pending-bubble-v122" aria-label="正在准备分享"><span class="dm-share-pending-dot-v122"></span><span class="dm-share-pending-dot-v122"></span><span class="dm-share-pending-dot-v122"></span></div>`;
+  box.appendChild(row);
+  hydrateIdentityAvatars(row);
+  requestAnimationFrame(()=>{const scroller=document.getElementById('dmChatScroll');if(scroller)scroller.scrollTop=scroller.scrollHeight;});
+  return row;
+}
+function removeDMSharePendingBubbleV122(){document.getElementById('dmSharePendingBubbleV122')?.remove();}
+function shouldAttemptDMShareCardV122(share,rows=[],userRequested=false){
+  const decision=String(share?.decision||share?.action||'none').toLowerCase();
+  return decision==='share'||(userRequested&&looksLikeDMAffirmativeShareReply(rows));
+}
+function waitDMSharePendingV122(ms=520){return new Promise(resolve=>setTimeout(resolve,ms));}
+
 async function dmSummonAI(){
   if(!currentDMChat||dmAIReplyInFlight)return;
   const typing=document.getElementById('dmTyping');
@@ -2878,12 +2913,18 @@ async function dmSummonAI(){
     if(!userRequestedShare&&!allowShareNow&&share&&String(share.decision||share.action||'none').toLowerCase()==='share')share={decision:'none'};
     if(!rows.length&&!share)throw new Error('AI 没有返回 messages');
     const pendingBefore=Number((dmShareIntentState[actorId]||{}).pending)||0;
+    const willAttemptShare=shouldAttemptDMShareCardV122(share,rows,userRequestedShare);
+    if(willAttemptShare){
+      showDMSharePendingBubbleV122(currentDMChat);
+      await waitDMSharePendingV122();
+    }
     const didShare=applyActorDMShareDecision(actorId,share,userRequestedShare);
-    // Render text after the card decision. This prevents a rejected/invalid share from being presented as already sent.
+    removeDMSharePendingBubbleV122();
+    // Render text after the card decision. If the character claimed to send a card but card creation failed, drop that claim.
     rows.slice(0,4).forEach(row=>{const text=String(row.textOriginal??row.text??'').trim();if(!text)return;if(userRequestedShare&&looksLikeDMAffirmativeShareReply([row])&&!didShare)return;addDMMessage(currentDMChat,'them',text,String(row.textTranslation??row.translation??'').trim());});
     if(userRequestedShare&&!didShare&&(Number((dmShareIntentState[actorId]||{}).pending)||0)===pendingBefore){const state=dmShareIntentState[actorId]||{pending:0};state.pending=Math.min(3,(Number(state.pending)||0)+1);dmShareIntentState[actorId]=state;persistDMShareIntentState();}
   }catch(error){alert('INS 私信 AI 调用失败：'+(error?.message||error));}
-  finally{typing?.classList.remove('show');if(plane){plane.disabled=false;plane.removeAttribute('aria-busy');}dmAIReplyInFlight=false;}
+  finally{removeDMSharePendingBubbleV122();typing?.classList.remove('show');if(plane){plane.disabled=false;plane.removeAttribute('aria-busy');}dmAIReplyInFlight=false;}
 }
 
 document.getElementById('dmMsgInput')?.addEventListener('keydown', e=>{
