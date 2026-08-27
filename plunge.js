@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：INS
-// 版本：1.2.2（DM 分享加载气泡 + 显式分享兜底修复）
+// 版本：1.2.4（DM 分享卡片弹窗 + 折叠翻译 + 居中分享面板）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -9,13 +9,13 @@
   // v1.07.8 intentionally uses fresh Roche identities. Some mobile builds keep
   // the already-registered app object when a TXT with the same ids is imported,
   // which leaves the old Home renderer alive even after the file is replaced.
-  const PLUGIN_ID = 'nini-ins-roche-v1078';
-  const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.2.3';
+  const PLUGIN_ID = 'nini-ins-roche-v1079';
+  const APP_ID = 'nini-ins-home-v1079';
+  const VERSION = '1.2.4';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   const DM_SHARE_V120_STYLE = `
-/* ===== INS v1.2.0 DM Share ===== */
+/* ===== INS v1.2.4 DM Share ===== */
 .dm-share-card-v120{width:min(262px,82vw);border-radius:18px;overflow:hidden;border:1px solid #e5e7ec;background:#fff;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.05);touch-action:manipulation}
 .dm-share-card-v120.feed{color:#111;background:#fff}.dm-share-card-v120.reel{color:#fff;background:#0a0a0b;border-color:#222}
 .dm-share-card-v120 .dm-share-media-v120{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center;font-size:11px;line-height:1.55;padding:16px;background:#f2f3f5;color:#676c74}
@@ -24,16 +24,22 @@
 .dm-share-card-v120 .dm-share-copy-v120{padding:10px 11px 12px}.dm-share-card-v120.reel .dm-share-copy-v120{background:#0a0a0b}
 .dm-share-kicker-v120{font-size:9px;color:#9a9ea5;margin-bottom:5px}.dm-share-card-v120.reel .dm-share-kicker-v120{color:#8d8e93}
 .dm-share-author-v120{font-size:12px;font-weight:850;line-height:1.25}.dm-share-caption-v120{margin-top:5px;font-size:10px;line-height:1.45;color:#4e535a;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.dm-share-card-v120.reel .dm-share-caption-v120{color:#ececef}
+.dm-share-card-translate-toggle-v124,.dm-share-detail-caption-translate-toggle-v124,.dm-share-comment-translate-toggle-v124{margin-top:6px;border:0;background:none;padding:0;color:#70757d;font-size:10px;font-weight:700;cursor:pointer;touch-action:manipulation}.dm-share-card-v120.reel .dm-share-card-translate-toggle-v124,.dm-share-detail-v120.reel .dm-share-detail-caption-translate-toggle-v124,.dm-share-detail-v120.reel .dm-share-comment-translate-toggle-v124{color:#a4a7ad}
+.dm-share-card-translation-v124,.dm-share-detail-caption-translation-v124,.dm-share-comment-translation-v120{display:none;margin-top:6px;padding:8px 10px;border-radius:10px;background:#f5f6f8;color:#4f5660;font-size:10px;line-height:1.5;white-space:pre-wrap}.dm-share-card-v120.reel .dm-share-card-translation-v124,.dm-share-detail-v120.reel .dm-share-detail-caption-translation-v124,.dm-share-detail-v120.reel .dm-share-comment-translation-v120{background:#141518;color:#eef0f3}
+.dm-share-card-translation-v124.show,.dm-share-detail-caption-translation-v124.show,.dm-share-comment-translation-v120.show{display:block}
 .dm-share-open-v120{margin-top:8px;font-size:9px;color:#8a8f96}.dm-share-card-v120.reel .dm-share-open-v120{color:#9c9da2}
 .dm-msg-row.them .dm-share-card-v120{max-width:min(262px,78vw)}
-.dm-share-detail-v120{position:absolute;inset:0;z-index:190;display:none;flex-direction:column;background:#fff;color:#111}.dm-share-detail-v120.show{display:flex}.dm-share-detail-v120.reel{background:#000;color:#fff}
+.dm-share-detail-v120{position:absolute;inset:0;z-index:190;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.28)}.dm-share-detail-v120.show{display:flex}.dm-share-detail-v120.reel{background:rgba(0,0,0,.55);color:#fff}
+.dm-share-detail-panel-v124{width:min(92vw,380px);max-height:min(82vh,680px);display:flex;flex-direction:column;overflow:hidden;border-radius:24px;background:#fff;color:#111;box-shadow:0 18px 50px rgba(0,0,0,.22)}.dm-share-detail-v120.reel .dm-share-detail-panel-v124{background:#070708;color:#fff;border:1px solid #1f2126}
 .dm-share-detail-head-v120{height:58px;flex:0 0 58px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #eceef2;background:inherit}.dm-share-detail-v120.reel .dm-share-detail-head-v120{border-color:#202126}
 .dm-share-detail-back-v120{width:38px;height:38px;border:0;background:transparent;color:inherit;font-size:30px;line-height:1;display:grid;place-items:center;cursor:pointer}.dm-share-detail-title-v120{min-width:0;flex:1}.dm-share-detail-title-v120 strong{display:block;font-size:14px}.dm-share-detail-title-v120 span{display:block;margin-top:2px;font-size:9px;color:#8d9198}.dm-share-detail-v120.reel .dm-share-detail-title-v120 span{color:#8f9198}
 .dm-share-detail-scroll-v120{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}.dm-share-detail-scroll-v120::-webkit-scrollbar{display:none}
 .dm-share-detail-media-v120{width:100%;aspect-ratio:1/1;background:#f1f2f4;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center;padding:20px;color:#555b63;font-size:12px;line-height:1.6;white-space:pre-wrap}.dm-share-detail-v120.reel .dm-share-detail-media-v120{aspect-ratio:4/5;background:#050506;color:#fff;padding:28px}.dm-share-detail-media-v120 img{width:100%;height:100%;object-fit:cover;display:block}
-.dm-share-detail-body-v120{padding:13px 14px}.dm-share-detail-caption-v120{font-size:12px;line-height:1.62;white-space:pre-wrap}.dm-share-detail-meta-v120{margin-top:7px;font-size:9px;color:#92969d}.dm-share-detail-v120.reel .dm-share-detail-meta-v120{color:#8a8c92}
-.dm-share-comments-head-v120{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid #eceef2}.dm-share-detail-v120.reel .dm-share-comments-head-v120{border-color:#22242a}.dm-share-comments-head-v120 strong{font-size:12px}.dm-share-comment-v120{padding:10px 0;border-bottom:1px solid #eef0f3}.dm-share-detail-v120.reel .dm-share-comment-v120{border-color:#1f2024}.dm-share-comment-v120 b{font-size:10px}.dm-share-comment-v120 p{margin:4px 0 0;font-size:11px;line-height:1.45}.dm-share-comment-translation-v120{margin-top:4px;font-size:9px;line-height:1.4;color:#8b9097}.dm-share-detail-v120.reel .dm-share-comment-translation-v120{color:#9c9fa5}
+.dm-share-detail-body-v120{padding:13px 14px 14px}.dm-share-detail-caption-v120{font-size:12px;line-height:1.62;white-space:pre-wrap}.dm-share-detail-meta-v120{margin-top:7px;font-size:9px;color:#92969d}.dm-share-detail-v120.reel .dm-share-detail-meta-v120{color:#8a8c92}
+.dm-share-comments-head-v120{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid #eceef2}.dm-share-detail-v120.reel .dm-share-comments-head-v120{border-color:#22242a}.dm-share-comments-head-v120 strong{font-size:12px}.dm-share-comment-v120{padding:10px 0;border-bottom:1px solid #eef0f3}.dm-share-detail-v120.reel .dm-share-comment-v120{border-color:#1f2024}.dm-share-comment-v120 b{font-size:10px}.dm-share-comment-v120 p{margin:4px 0 0;font-size:11px;line-height:1.45}
 .dm-share-load-v120{width:100%;height:40px;margin:12px 0 4px;border:0;border-radius:12px;background:#f0f1f4;color:#666b73;font-size:11px;font-weight:800;cursor:pointer}.dm-share-detail-v120.reel .dm-share-load-v120{background:#18191d;color:#f2f2f4}.dm-share-load-v120:disabled{opacity:.58}
+#sheetShareDM{align-items:center;justify-content:center;padding:16px;z-index:191}#sheetShareDM .route-sheet{width:min(92vw,380px);max-height:min(72vh,520px);border-radius:24px;padding:12px 14px 18px;box-shadow:0 18px 50px rgba(0,0,0,.22)}#sheetShareDM .route-grab{display:none}
+#reelsV15DMSheet{left:50%;right:auto;top:50%;bottom:auto;transform:translate(-50%,-50%);width:min(92vw,380px);max-height:min(72vh,520px);padding:12px 14px 18px;border-radius:24px;box-shadow:0 18px 50px rgba(0,0,0,.3)}#reelsV15DMSheet .reels-v15-sheet-head{padding-top:2px}#reelsV15DMSheet .reels-v15-block{padding-bottom:2px}
 .dm-share-pending-v122{display:flex;align-items:flex-start;gap:8px;margin:6px 0 2px;padding-right:52px}
 .dm-share-pending-v122 .dm-msg-avatar{flex:0 0 auto}
 .dm-share-pending-bubble-v122{height:34px;min-width:48px;padding:0 12px;border-radius:8px 16px 16px 16px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px}
@@ -41,7 +47,6 @@
 .dm-share-pending-dot-v122:nth-child(2){animation-delay:.14s}.dm-share-pending-dot-v122:nth-child(3){animation-delay:.28s}
 @keyframes dmSharePendingDotV122{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-3px);opacity:1}}
 `;
-
   let ACTIVE_DIRECT_HOST = null;
   let ACTIVE_DIRECT_STYLE = null;
   let ACTIVE_APP_WINDOW = null;
@@ -2430,6 +2435,7 @@ function renderDMTimelineCardHTML(card){
   const media=card.mediaUrl
     ? `<img src="${escapeDMCardHTML(card.mediaUrl)}" alt="分享内容">`
     : escapeDMCardHTML(String(card.mediaDescription||'').replace(/^Reel 视频描述\s*/,'')).replace(/\n/g,'<br>');
+  const canTranslateCaption=shouldOfferTranslation(card.caption||'',card.captionTranslation||'');
   const cardHtml=`
     <div class="dm-share-card-v120 ${type}" data-dm-share-card="${escapeDMCardHTML(card.cardId)}" role="button" tabindex="0">
       <div class="dm-share-media-v120">${media|| (type==='reel'?'Reel':'IG 动态')}</div>
@@ -2437,6 +2443,7 @@ function renderDMTimelineCardHTML(card){
         <div class="dm-share-kicker-v120">${label}</div>
         <div class="dm-share-author-v120">@${escapeDMCardHTML(card.author||'unknown')}</div>
         <div class="dm-share-caption-v120">${escapeDMCardHTML(card.caption||'')}</div>
+        ${canTranslateCaption?`<button class="dm-share-card-translate-toggle-v124" data-dm-share-card-translate="${escapeDMCardHTML(card.cardId)}" type="button">${card.translationOpen?'收起翻译':'查看翻译'}</button><div class="dm-share-card-translation-v124 ${card.translationOpen?'show':''}">${escapeDMCardHTML(card.captionTranslation||'')}</div>`:''}
         <div class="dm-share-open-v120">点击查看 · 评论区</div>
       </div>
     </div>`;
@@ -2707,13 +2714,38 @@ function getDMShareDetailComments(card,content){
 function ensureDMShareDetailV120(){
   let el=document.getElementById('dmShareDetailV120');if(el)return el;
   el=document.createElement('section');el.id='dmShareDetailV120';el.className='dm-share-detail-v120';
-  el.innerHTML=`<div class="dm-share-detail-head-v120"><button class="dm-share-detail-back-v120" id="dmShareDetailBackV120" type="button">‹</button><div class="dm-share-detail-title-v120"><strong id="dmShareDetailTypeV120">IG 动态</strong><span id="dmShareDetailAuthorV120"></span></div></div><div class="dm-share-detail-scroll-v120"><div class="dm-share-detail-media-v120" id="dmShareDetailMediaV120"></div><div class="dm-share-detail-body-v120"><div class="dm-share-detail-caption-v120" id="dmShareDetailCaptionV120"></div><div class="dm-share-detail-meta-v120" id="dmShareDetailMetaV120"></div><div class="dm-share-comments-head-v120"><strong>评论</strong><span id="dmShareDetailCommentCountV120"></span></div><div id="dmShareDetailCommentsV120"></div><button class="dm-share-load-v120" id="dmShareDetailLoadV120" type="button">再加载 5 条评论</button></div></div>`;
+  el.innerHTML=`<div class="dm-share-detail-panel-v124"><div class="dm-share-detail-head-v120"><button class="dm-share-detail-back-v120" id="dmShareDetailBackV120" type="button">‹</button><div class="dm-share-detail-title-v120"><strong id="dmShareDetailTypeV120">IG 动态</strong><span id="dmShareDetailAuthorV120"></span></div></div><div class="dm-share-detail-scroll-v120"><div class="dm-share-detail-media-v120" id="dmShareDetailMediaV120"></div><div class="dm-share-detail-body-v120"><div class="dm-share-detail-caption-v120" id="dmShareDetailCaptionV120"></div><button class="dm-share-detail-caption-translate-toggle-v124" id="dmShareDetailCaptionToggleV124" type="button" style="display:none">查看翻译</button><div class="dm-share-detail-caption-translation-v124" id="dmShareDetailCaptionTranslationV124"></div><div class="dm-share-detail-meta-v120" id="dmShareDetailMetaV120"></div><div class="dm-share-comments-head-v120"><strong>评论</strong><span id="dmShareDetailCommentCountV120"></span></div><div id="dmShareDetailCommentsV120"></div><button class="dm-share-load-v120" id="dmShareDetailLoadV120" type="button">再加载 5 条评论</button></div></div></div>`;
   (document.querySelector('.phone')||document.body).appendChild(el);
   el.querySelector('#dmShareDetailBackV120')?.addEventListener('click',closeDMShareCardDetail);
   el.querySelector('#dmShareDetailLoadV120')?.addEventListener('click',()=>void loadMoreDMShareCardComments());
+  el.addEventListener('click',event=>{if(event.target===el)closeDMShareCardDetail();});
   return el;
 }
 function closeDMShareCardDetail(){const el=document.getElementById('dmShareDetailV120');el?.classList.remove('show','reel');dmShareDetailActive=null;}
+function toggleDMShareCardTranslation(cardId){
+  if(!currentDMChat||!cardId)return;
+  const card=findDMShareCard(currentDMChat,String(cardId));
+  if(!card)return;
+  card.translationOpen=!card.translationOpen;
+  renderDMConversationTimeline(currentDMChat);
+}
+function toggleDMShareDetailCaptionTranslation(){
+  if(!dmShareDetailActive)return;
+  const card=findDMShareCard(dmShareDetailActive.recipient,dmShareDetailActive.cardId);
+  if(!card)return;
+  card.detailCaptionTranslationOpen=!card.detailCaptionTranslationOpen;
+  renderDMShareCardDetail();
+}
+function toggleDMShareDetailCommentTranslation(index){
+  if(!dmShareDetailActive)return;
+  const card=findDMShareCard(dmShareDetailActive.recipient,dmShareDetailActive.cardId);
+  const content=resolveDMShareCardContent(card);
+  const comments=getDMShareDetailComments(card,content);
+  const row=comments?.[Number(index)];
+  if(!row)return;
+  row.__dmShareTranslationOpen=!row.__dmShareTranslationOpen;
+  renderDMShareCardDetail();
+}
 function renderDMShareCardDetail(){
   if(!dmShareDetailActive)return;
   const card=findDMShareCard(dmShareDetailActive.recipient,dmShareDetailActive.cardId);if(!card){closeDMShareCardDetail();return;}
@@ -2723,10 +2755,25 @@ function renderDMShareCardDetail(){
   document.getElementById('dmShareDetailAuthorV120').textContent='@'+(content.author||'unknown');
   const media=document.getElementById('dmShareDetailMediaV120');if(media)media.innerHTML=content.mediaUrl?`<img src="${escapeDMCardHTML(content.mediaUrl)}" alt="分享内容">`:escapeDMCardHTML(String(content.mediaDescription||'')).replace(/\n/g,'<br>');
   const cap=document.getElementById('dmShareDetailCaptionV120');if(cap)cap.textContent=content.caption||'';
+  const captionToggle=document.getElementById('dmShareDetailCaptionToggleV124');
+  const captionTranslation=document.getElementById('dmShareDetailCaptionTranslationV124');
+  const canTranslateCaption=shouldOfferTranslation(content.caption||'',content.captionTranslation||card.captionTranslation||'');
+  if(captionToggle&&captionTranslation){
+    if(canTranslateCaption){
+      captionToggle.style.display='inline-flex';
+      captionToggle.textContent=card.detailCaptionTranslationOpen?'收起翻译':'查看翻译';
+      captionTranslation.textContent=content.captionTranslation||card.captionTranslation||'';
+      captionTranslation.classList.toggle('show',!!card.detailCaptionTranslationOpen);
+    }else{
+      captionToggle.style.display='none';
+      captionTranslation.textContent='';
+      captionTranslation.classList.remove('show');
+    }
+  }
   const meta=document.getElementById('dmShareDetailMetaV120');if(meta)meta.textContent=[content.location,(content.tags||[]).join(' '),card.source==='dm_only'?'仅保留在本次 DM':'' ].filter(Boolean).join(' · ');
   const comments=getDMShareDetailComments(card,content);
   const count=document.getElementById('dmShareDetailCommentCountV120');if(count)count.textContent=comments.length+' 条';
-  const box=document.getElementById('dmShareDetailCommentsV120');if(box)box.innerHTML=comments.map(row=>`<div class="dm-share-comment-v120"><b>@${escapeDMCardHTML(row.author||'guest')}</b><p>${escapeDMCardHTML(row.text||row.textOriginal||'')}</p>${row.translation||row.textTranslation?`<div class="dm-share-comment-translation-v120">${escapeDMCardHTML(row.translation||row.textTranslation)}</div>`:''}</div>`).join('')||'<div class="dm-share-comment-v120"><p>还没有评论。</p></div>';
+  const box=document.getElementById('dmShareDetailCommentsV120');if(box)box.innerHTML=comments.map((row,index)=>{const original=row.text||row.textOriginal||'';const translated=row.translation||row.textTranslation||'';const canTranslate=shouldOfferTranslation(original,translated);return `<div class="dm-share-comment-v120"><b>@${escapeDMCardHTML(row.author||'guest')}</b><p>${escapeDMCardHTML(original)}</p>${canTranslate?`<button class="dm-share-comment-translate-toggle-v124" data-dm-share-comment-translate="${index}" type="button">${row.__dmShareTranslationOpen?'收起翻译':'查看翻译'}</button><div class="dm-share-comment-translation-v120 ${row.__dmShareTranslationOpen?'show':''}">${escapeDMCardHTML(translated)}</div>`:''}</div>`;}).join('')||'<div class="dm-share-comment-v120"><p>还没有评论。</p></div>';
 }
 function openDMShareCardDetail(cardId){if(!currentDMChat)return;dmShareDetailActive={recipient:currentDMChat,cardId:String(cardId||'')};renderDMShareCardDetail();}
 async function loadMoreDMShareCardComments(){
@@ -2915,8 +2962,9 @@ function applyActorDMShareDecision(actorId,share,userRequested){
   if(!card)return false;if(!dmSharedCards[currentDMChat])dmSharedCards[currentDMChat]=[];dmSharedCards[currentDMChat].push(card);state.pending=0;dmShareIntentState[id]=state;persistDMShareIntentState();scheduleINSDMHistoryPersistence();updateDMListPreview(currentDMChat,`分享了一条 ${type==='reel'?'Reel':'IG 动态'}`);renderDMChatStream(currentDMChat);return true;
 }
 
-document.getElementById('dmChatMessages')?.addEventListener('click',event=>{const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;openDMShareCardDetail(card.dataset.dmShareCard);});
-document.getElementById('dmChatMessages')?.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;event.preventDefault();openDMShareCardDetail(card.dataset.dmShareCard);});
+document.getElementById('dmChatMessages')?.addEventListener('click',event=>{const toggle=event.target.closest?.('[data-dm-share-card-translate]');if(toggle){event.preventDefault();event.stopPropagation();toggleDMShareCardTranslation(toggle.dataset.dmShareCardTranslate);return;}const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;openDMShareCardDetail(card.dataset.dmShareCard);});
+document.getElementById('dmChatMessages')?.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;if(event.target.closest?.('[data-dm-share-card-translate]'))return;const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;event.preventDefault();openDMShareCardDetail(card.dataset.dmShareCard);});
+document.addEventListener('click',event=>{const captionBtn=event.target.closest?.('#dmShareDetailCaptionToggleV124');if(captionBtn){event.preventDefault();toggleDMShareDetailCaptionTranslation();return;}const commentBtn=event.target.closest?.('[data-dm-share-comment-translate]');if(commentBtn){event.preventDefault();toggleDMShareDetailCommentTranslation(commentBtn.dataset.dmShareCommentTranslate);return;}});
 
 function showDMSharePendingBubbleV122(recipient){
   const box=document.getElementById('dmChatMessages');
