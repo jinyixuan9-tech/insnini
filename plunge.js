@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.07.9（首页 Feed 正文按需翻译 API）
+// 版本：1.07.10（Feed 翻译 API 居中卡片 / 默认预填 SiliconFlow）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.07.9';
+  const VERSION = '1.07.10';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -271,9 +271,9 @@ function readHomeFeedTranslationJSON(key,fallback){
   }catch(e){return fallback;}
 }
 let homeFeedTranslationApiSettings={
-  url:'',
-  apiKey:'',
-  model:'',
+  url:'https://api.siliconflow.cn/v1',
+  apiKey:'sk-eoifyctjxnsqcozvzyemvhwonsnfxxppzqhtactoipqbakjv',
+  model:'deepseek-ai/DeepSeek-V4-Flash',
   ...readHomeFeedTranslationJSON(HOME_FEED_TRANSLATION_API_STORAGE_KEY,{})
 };
 let homeFeedTranslationCache=readHomeFeedTranslationJSON(HOME_FEED_TRANSLATION_CACHE_STORAGE_KEY,{});
@@ -9686,8 +9686,10 @@ document.getElementById('profileImagePromptSave')?.addEventListener('click',()=>
 });
 document.getElementById('profileSubApiClose')?.addEventListener('click', closeSubApiSettings);
 document.getElementById('profileSubApiSave')?.addEventListener('click', saveINSSubApiPreset);
-document.getElementById('profileFeedTranslationApiClose')?.addEventListener('click', closeHomeFeedTranslationApiSettings);
-document.getElementById('profileFeedTranslationApiSave')?.addEventListener('click', saveHomeFeedTranslationApiSettings);
+document.getElementById('profileFeedTranslationApiCard')?.addEventListener('pointerup',event=>event.stopPropagation());
+document.getElementById('profileFeedTranslationApiCard')?.addEventListener('click',event=>event.stopPropagation());
+document.getElementById('profileFeedTranslationApiClose')?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closeHomeFeedTranslationApiSettings();});
+document.getElementById('profileFeedTranslationApiSave')?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();saveHomeFeedTranslationApiSettings();});
 document.getElementById('insSubApiRefreshModels')?.addEventListener('click', refreshINSSubApiModels);
 document.getElementById('insSubApiPresetList')?.addEventListener('click',(event)=>{
   const enableBtn=event.target.closest('[data-ins-subapi-enable]');
@@ -12519,6 +12521,36 @@ startINSAutoPublishTimer();
 .nini-ins-root .profile-setting-card{
   bottom:calc(14px + var(--ins-safe-bottom))!important;
   max-height:calc(100% - 28px - var(--ins-safe-top) - var(--ins-safe-bottom))!important;
+}
+
+/* v1.07.10: only Feed translation API uses a centered card.
+   Other settings remain exactly where 1.07.9 put them. */
+.nini-ins-root #profileFeedTranslationApiCard{
+  left:50%!important;
+  right:auto!important;
+  top:50%!important;
+  bottom:auto!important;
+  width:min(390px,calc(100% - 28px))!important;
+  max-height:min(620px,calc(100% - var(--ins-safe-top) - var(--ins-safe-bottom) - 48px))!important;
+  margin:0!important;
+  transform:translate(-50%,-50%) scale(.985)!important;
+  z-index:320!important;
+  padding:14px!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.nini-ins-root #profileFeedTranslationApiCard.show{
+  transform:translate(-50%,-50%) scale(1)!important;
+}
+.nini-ins-root #profileFeedTranslationApiCard .profile-setting-head{
+  position:sticky;
+  top:-14px;
+  z-index:4;
+  margin:-14px -4px 10px;
+  padding:14px 4px 8px;
+  background:linear-gradient(180deg,rgba(247,248,250,.99) 0%,rgba(247,248,250,.95) 82%,rgba(247,248,250,0) 100%);
+  -webkit-backdrop-filter:blur(22px);
+  backdrop-filter:blur(22px);
 }
 .nini-ins-root .ins-interface-size-panel{
   position:absolute;
