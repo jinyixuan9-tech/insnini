@@ -200,9 +200,9 @@ const NAV_ASSET={
 };
 
 const posts=[
-{id:'p_rec_food',type:'stranger',followed:false,author:'heyy.he',avatar:'H',sub:'为你推荐',mediaClass:'m1',mediaText:'浙江日常美食照片。',mediaDescription:'浙江的日常美食随拍，餐桌上摆着刚上桌的食物，光线自然，像普通用户随手记录的一顿饭。',mediaUrl:'https://imgbed.heliar.top/i/Y7dNw_BRdx54VeOS_Screenshot_20260826_214751.webp',likes:1284,comments:45,reposts:31,shares:66,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'今天本来只是想随便吃点，结果比想象中好吃很多。这种时候就会突然觉得，出门还是值得的。',captionTranslation:'',captionShort:'今天本来只是想随便吃点，结果比想象中好吃很多。这种时候就会突然觉得，出门还是值得的。',captionLong:'',translation:'',sourceLanguage:'zh',tags:['#daily','#food','#weekend']},
-{id:'p_rec_idol',type:'stranger',followed:false,author:'haru.archive',avatar:'H',sub:'为你推荐',mediaClass:'m2',mediaText:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaDescription:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaUrl:'',likes:26400,comments:1287,reposts:807,shares:1930,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',captionTranslation:'',captionShort:'今天也谢谢大家。结束以后现在才终于有一点实感。回家吧 💤',captionLong:'',translation:'',sourceLanguage:'ko',tags:['#backstage','#today','#seoul']},
-{id:'p_rec_swiss',type:'stranger',followed:false,author:'mialater',avatar:'M',sub:'为你推荐',mediaClass:'m3',mediaText:'瑞士雪山旅行照片。',mediaDescription:'瑞士雪山旅行随拍，远处是高耸雪峰与开阔山谷，空气清透，光线干净，带有真实旅行记录感。',mediaUrl:'https://imgbed.heliar.top/i/Z_jJ7jv3jZq6bkaY_Screenshot_20260826_214453.webp',likes:6942,comments:236,reposts:142,shares:417,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',captionTranslation:'',captionShort:'一睁眼看到这样的景色，连刚才想抱怨什么都忘了。有些地方真的会让整个世界暂时安静一点。',captionLong:'',translation:'',sourceLanguage:'en',tags:['#switzerland','#mountains','#travel']}
+{id:'p_rec_food',type:'stranger',followed:false,author:'heyy.he',avatar:'H',sub:'为你推荐',mediaClass:'m1',mediaText:'浙江日常美食照片。',mediaDescription:'浙江的日常美食随拍，餐桌上摆着刚上桌的食物，光线自然，像普通用户随手记录的一顿饭。',mediaUrl:'https://imgbed.heliar.top/i/Y7dNw_BRdx54VeOS_Screenshot_20260826_214751.webp',likes:1284,comments:45,reposts:31,shares:66,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'下班后路过就进去吃了，没想到每道菜都挺稳。最后那碗汤比照片里看着还好喝，下次应该还会来。',captionTranslation:'',captionShort:'下班后路过就进去吃了，没想到每道菜都挺稳。最后那碗汤比照片里看着还好喝，下次应该还会来。',captionLong:'',translation:'',sourceLanguage:'zh',tags:['#daily','#food','#weekend']},
+{id:'p_rec_idol',type:'stranger',followed:false,author:'seoyun.after',avatar:'H',sub:'为你推荐',mediaClass:'m2',mediaText:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaDescription:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaUrl:'',likes:26400,comments:1287,reposts:807,shares:1930,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'终于收工了。耳返摘下来的那一刻才发现今天真的结束了，回去洗个澡就睡。谢谢来看舞台的人。',captionTranslation:'',captionShort:'终于收工了。耳返摘下来的那一刻才发现今天真的结束了，回去洗个澡就睡。谢谢来看舞台的人。',captionLong:'',translation:'',sourceLanguage:'ko',tags:['#backstage','#today','#seoul']},
+{id:'p_rec_swiss',type:'stranger',followed:false,author:'mialater',avatar:'M',sub:'为你推荐',mediaClass:'m3',mediaText:'瑞士雪山旅行照片。',mediaDescription:'瑞士雪山旅行随拍，远处是高耸雪峰与开阔山谷，空气清透，光线干净，带有真实旅行记录感。',mediaUrl:'https://imgbed.heliar.top/i/Z_jJ7jv3jZq6bkaY_Screenshot_20260826_214453.webp',likes:6942,comments:236,reposts:142,shares:417,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'早上拉开窗帘就是这个景色，站着看了一会儿才想起来拿手机。今天没排什么行程，准备沿着湖边慢慢走。',captionTranslation:'',captionShort:'早上拉开窗帘就是这个景色，站着看了一会儿才想起来拿手机。今天没排什么行程，准备沿着湖边慢慢走。',captionLong:'',translation:'',sourceLanguage:'en',tags:['#switzerland','#mountains','#travel']}
 ];
 
 posts.forEach((p,index)=>{
@@ -671,6 +671,35 @@ reel_amusement_01:[
 {initial:'?',author:'cloudroom_',text:'看得我也想和朋友出去疯一天',translation:'',translated:false},
 {initial:'?',author:'sora.wav',text:'마지막에 다같이 웃는 느낌 너무 좋다',translation:'最后大家一起笑的感觉太好了',translated:false}]
 }};
+
+/* Built-in Reels copy follows the same global, natural-account prompt contract as generated content. */
+const BUILTIN_REELS_SOCIAL_COPY={
+reel_kamakura_01:{
+caption:'帰りの電車を一本遅らせた。海の色が変わるまで、もう少しだけ。',
+captionTranslation:'回去的电车晚坐了一班。想再待一会儿，等海的颜色慢慢变掉。',
+sourceLanguage:'ja',
+comments:[
+{initial:'?',author:'natsu.zip',displayName:'なつ',text:'この時間の海、電車を一本逃しても見ていたい',translation:'这个时间的海，就算错过一班电车也想继续看',sourceLanguage:'ja',translated:false},
+{initial:'?',author:'melo__21',displayName:'Melo',text:'the window reflections made this feel like a memory',translation:'车窗倒影让这段画面像一段记忆',sourceLanguage:'en',translated:false},
+{initial:'?',author:'haeun.frame',displayName:'해은',text:'파도 소리까지 들리는 것 같아',translation:'感觉连海浪声都能听见',sourceLanguage:'ko',translated:false},
+{initial:'?',author:'cloudyday_8',displayName:'阴天也出门',text:'傍晚这段路人是不是会比白天多很多',translation:'',sourceLanguage:'zh',translated:false},
+{initial:'?',author:'00sora',displayName:'そら',text:'最後の電車の明かりが消えるところ、好き',translation:'很喜欢最后电车灯光消失的那一段',sourceLanguage:'ja',translated:false}]},
+reel_amusement_01:{
+caption:'사진보다 영상에 웃음소리가 더 많이 남았다. 다들 집에 갈 때 목이 쉬어 있었음 ㅋㅋ',
+captionTranslation:'比起照片，视频里留下了更多笑声。大家回家的时候嗓子都哑了ㅋㅋ',
+sourceLanguage:'ko',
+comments:[
+{initial:'?',author:'yena.03',displayName:'예나',text:'마지막에 다들 목소리 쉰 거 너무 현실적이야 ㅋㅋ',translation:'最后大家嗓子都哑了也太真实了ㅋㅋ',sourceLanguage:'ko',translated:false},
+{initial:'?',author:'peachfilm',displayName:'Peach',text:'who was filming while everyone kept crashing into the frame',translation:'大家不停撞进镜头时到底是谁在拍',sourceLanguage:'en',translated:false},
+{initial:'?',author:'yuuna_day',displayName:'ゆうな',text:'ぬいぐるみ結局だれが持って帰ったの',translation:'那个玩偶最后到底是谁带回家了',sourceLanguage:'ja',translated:false},
+{initial:'?',author:'cloudroom_',displayName:'云房间',text:'这种视频回看时应该会比当天更好笑',translation:'',sourceLanguage:'zh',translated:false},
+{initial:'?',author:'sora.wav',displayName:'소라',text:'회전목마 앞 장면은 생각보다 조용해서 더 좋다',translation:'旋转木马前那一段比想象中安静，反而更喜欢',sourceLanguage:'ko',translated:false}]}
+};
+Object.entries(BUILTIN_REELS_SOCIAL_COPY).forEach(([id,copy])=>{
+  const item=reelsV15State.items.find(entry=>entry.id===id);
+  if(item) Object.assign(item,{caption:copy.caption,captionTranslation:copy.captionTranslation,sourceLanguage:copy.sourceLanguage});
+  reelsV15State.comments[id]=copy.comments.map(comment=>({...comment}));
+});
 
 function getReelsV15Item(id){
   return reelsV15State.items.find(item=>item.id===id) || null;
@@ -7908,23 +7937,23 @@ let commentReplyTo = null;
 
 const commentsByPost = {
 p_rec_food:[
-{author:'momo_77',text:'这家看起来也太香了',translation:'',generated:true},
-{author:'linlin.zip',text:'地址交出来 👀',translation:'',generated:true},
-{author:'yuu__day',text:'我刚吃完又被你看饿了',translation:'',generated:true},
-{author:'chae.log',text:'맛있겠다…',translation:'看起来好好吃…',generated:true},
-{author:'room404',text:'这种店最容易说“随便吃点”然后吃撑',translation:'',generated:true}],
+{author:'baozi.afterwork',displayName:'下班吃什么',text:'这家周五晚上是不是要排很久',translation:'',sourceLanguage:'zh',generated:true},
+{author:'chaeon.zip',displayName:'채온',text:'국물 색깔 보니까 밥 한 공기 바로 생각난다',translation:'看到汤的颜色就立刻想来一碗饭',sourceLanguage:'ko',generated:true},
+{author:'yuu_tabememo',displayName:'ゆう',text:'最後のスープがいちばん気になる',translation:'最在意最后那碗汤',sourceLanguage:'ja',generated:true},
+{author:'lateplate.jpg',displayName:'Late Plate',text:'the second dish looks like the one I would order twice',translation:'第二道菜看起来像是我会再点一份的那种',sourceLanguage:'en',generated:true},
+{author:'nineteenfloor',displayName:'十九楼',text:'“随便吃点”一般都是这种结局',translation:'',sourceLanguage:'zh',generated:true}],
 p_rec_idol:[
-{author:'minseo.zip',text:'오늘 무대 진짜 너무 좋았어요 😭',translation:'今天的舞台真的太好了 😭',generated:true},
-{author:'winterpage_',text:'수고했어 얼른 쉬어 🥹',translation:'辛苦了，快去休息吧 🥹',generated:true},
-{author:'lilacroom',text:'THE STAGE TODAY??? 🔥',translation:'今天这个舞台？？？🔥',generated:true},
-{author:'nana_082',text:'この衣装ほんとに好き…',translation:'真的好喜欢这套衣服…',generated:true},
-{author:'studio_han',text:'드디어 끝났네 ㅋㅋ 고생했다',translation:'终于结束了ㅋㅋ 辛苦了',generated:true}],
+{author:'minseo.zip',displayName:'민서',text:'오늘 무대 끝나고 바로 올 줄 몰랐어, 진짜 수고했어',translation:'没想到今天舞台结束就马上发了，真的辛苦了',sourceLanguage:'ko',generated:true},
+{author:'winterpage_',displayName:'Winter Page',text:'please get some sleep before checking the comments again',translation:'先去睡一觉再回来看评论吧',sourceLanguage:'en',generated:true},
+{author:'nana_082',displayName:'ナナ',text:'イヤモニ置いたままなのが本当に終演後って感じ',translation:'耳返就那样放着，很有演出刚结束的感觉',sourceLanguage:'ja',generated:true},
+{author:'lilacroom',displayName:'紫房间',text:'后台桌面比我想象中还要真实地乱',translation:'',sourceLanguage:'zh',generated:true},
+{author:'studio_han',displayName:'한 스튜디오',text:'내일 일정 없었으면 좋겠다 ㅋㅋ 얼른 들어가',translation:'希望明天没有行程ㅋㅋ快回去吧',sourceLanguage:'ko',generated:true}],
 p_rec_swiss:[
-{author:'ellie.wav',text:'adding this to my list immediately',translation:'立刻加进我的旅行清单',generated:true},
-{author:'noahfilm',text:'this doesn’t even look real',translation:'这看起来都不像真的',generated:true},
-{author:'sunny_03',text:'Where exactly is this? 😭',translation:'这具体是哪里？😭',generated:true},
-{author:'하루종일',text:'여기 진짜 가보고 싶다…',translation:'真的好想去这里…',generated:true},
-{author:'pocketcloud',text:'the kind of view that fixes my mood for 10 minutes',translation:'这种景色能把我的心情治好十分钟',generated:true}]
+{author:'ellie.wav',displayName:'Ellie',text:'did you actually go for the walk or stay by the window all morning',translation:'你后来真的出去散步了，还是整个早上都待在窗边',sourceLanguage:'en',generated:true},
+{author:'noah.unterwegs',displayName:'Noah unterwegs',text:'Heute sieht man die Berge endlich ohne Wolken.',translation:'今天终于能看到没有云挡住的山了。',sourceLanguage:'de',generated:true},
+{author:'haru.route',displayName:'하루',text:'일정 없는 여행 하루가 제일 부럽다',translation:'最羡慕旅行里没有行程的一天',sourceLanguage:'ko',generated:true},
+{author:'pocketcloud',displayName:'口袋云',text:'这种窗景会让我出门计划直接推迟半小时',translation:'',sourceLanguage:'zh',generated:true},
+{author:'claire.enroute',displayName:'Claire en route',text:'La lumière du matin est presque trop nette.',translation:'清晨的光线清晰得几乎有点不真实。',sourceLanguage:'fr',generated:true}]
 };
 const feedCommentVisibleCountByPost=Object.create(null);
 
