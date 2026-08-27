@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：Ins
-// 版本：1.08.1（Reels 默认内容 + 初始评论）
+// 版本：1.08.2（Reels 评论保留修复）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.08.1';
+  const VERSION = '1.08.2';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -11350,7 +11350,10 @@ function hydrateRocheIdentityData(payload={}){
     reelsV15State.items=(reelsV15State.items||[]).filter(item=>
       item.kind==='stranger' || item.kind==='user'
     );
-    reelsV15State.comments={};
+    const keptReelIds=new Set((reelsV15State.items||[]).map(item=>String(item.id||'')));
+    Object.keys(reelsV15State.comments||{}).forEach(id=>{
+      if(!keptReelIds.has(String(id)))delete reelsV15State.comments[id];
+    });
     reelsV15State.activeId=reelsV15State.items[0]?.id||null;
   }
 
