@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：INS
-// 版本：1.09（Story 24h 曝露 / 浏览 / Emoji 表态规划）
+// 版本：1.1.1（Roche 生图接口接入）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.09';
+  const VERSION = '1.1.1';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -1599,15 +1599,21 @@ document.getElementById('cpSaveDescBtn').addEventListener('click', ()=>{
   renderCreatePostPreview();
 });
 
-document.getElementById('cpGenerateBtn').addEventListener('click', ()=>{
+document.getElementById('cpGenerateBtn').addEventListener('click', async ()=>{
   if(!createPostHasSpace()) return;
   const text = document.getElementById('cpCaptureDesc').value.trim();
   if(!text){ alert('先写一点照片描述'); return; }
-  // UI-only placeholder; real plugin will call Roche image generation after user approval.
-  createPostState.media.push({type:'desc', text:text + '（待生图）'});
-  document.getElementById('cpCaptureDesc').value = '';
-  closeCpModal('cpCaptureModal');
-  renderCreatePostPreview();
+  const btn=document.getElementById('cpGenerateBtn');
+  try{
+    const generated=await withINSImageButtonBusy(btn,'生图中…',()=>requestRocheGeneratedImage({description:text,entry:'feed'}));
+    createPostState.media.push({type:'image',src:generated.url,text,generated:true,source:'generated'});
+    document.getElementById('cpCaptureDesc').value = '';
+    closeCpModal('cpCaptureModal');
+    renderCreatePostPreview();
+  }catch(error){
+    const reason=String(error?.message||error||'未知错误');
+    alert(reason==='bridge_not_connected'?'当前没有连接到 Roche 生图接口。请先在 Roche 生图设置里完成配置。':`生图失败：${reason}`);
+  }
 });
 
 function renderCreatePostPlaceholderChoices(){
@@ -4627,7 +4633,7 @@ function renderStoryCreateDraft(){
     const isVideo=item.type==='video';
     const preview = !isVideo && item.mediaUrl
       ? `<img src="${escapeDMCardHTML(item.mediaUrl)}" alt="Story 图片预览">`
-      : !isVideo && item.generatedRequested
+      : !isVideo && item.generatedRequested && !item.mediaUrl
         ? `已选择「按描述生图」<br>${escapeDMCardHTML(item.description||'请继续填写图片描述')}`
         : !isVideo
           ? ''
@@ -7708,7 +7714,7 @@ document.getElementById('storyCreateItems')?.addEventListener('change',e=>{
     renderStoryCreateDraft();
   }
 });
-document.getElementById('storyCreateItems')?.addEventListener('click',e=>{
+document.getElementById('storyCreateItems')?.addEventListener('click',async e=>{
   const removeBtn=e.target.closest('[data-story-create-remove]');
   if(removeBtn){
     const index=Number(removeBtn.dataset.storyCreateRemove||0);
@@ -7729,15 +7735,18 @@ document.getElementById('storyCreateItems')?.addEventListener('click',e=>{
       return;
     }
 
-    item.generatedRequested=true;
-    item.mediaSource='generated';
-    item.mediaUrl='';
-    item.fileName='';
-    renderStoryCreateDraft();
-
-    // Formal Roche integration point:
-    // cachedRoche.ai.generateImage({ prompt: desc, ... })
-    alert('这里正式版接 Roche 图片生成接口；当前已经记录为「按描述生图」。');
+    try{
+      const generated=await withINSImageButtonBusy(generateBtn,'生图中…',()=>requestRocheGeneratedImage({description:desc,entry:'story'}));
+      item.generatedRequested=true;
+      item.generated=true;
+      item.mediaSource='generated';
+      item.mediaUrl=generated.url;
+      item.fileName='';
+      renderStoryCreateDraft();
+    }catch(error){
+      const reason=String(error?.message||error||'未知错误');
+      alert(reason==='bridge_not_connected'?'当前没有连接到 Roche 生图接口。请先在 Roche 生图设置里完成配置。':`生图失败：${reason}`);
+    }
   }
 });
 document.getElementById('storyCreateCaption')?.addEventListener('input',e=>{
@@ -7825,15 +7834,27 @@ document.getElementById('storyEditLinkAlbum')?.addEventListener('click',()=>{
   renderStoryEditSheet();
   renderStoryViewer();
 });
-document.getElementById('storyEditGenerateImage')?.addEventListener('click',()=>{
+document.getElementById('storyEditGenerateImage')?.addEventListener('click',async ()=>{
   const item=getCurrentStoryItems()[storyEditState.editIndex];
   if(!item || item.type==='video') return;
-  item.description=document.getElementById('storyEditDescription')?.value.trim() || item.description;
-  item.generated=true;
-  item.linkedAlbumId='';
-  renderStoryEditSheet();
-  renderStoryViewer();
-  alert('这里正式版接 Roche 生图；当前先保留「是否生图」交互。');
+  const desc=document.getElementById('storyEditDescription')?.value.trim() || item.description || '';
+  if(!desc){alert('先写图片描述再生图');return;}
+  const btn=document.getElementById('storyEditGenerateImage');
+  try{
+    const generated=await withINSImageButtonBusy(btn,'生图中…',()=>requestRocheGeneratedImage({description:desc,entry:'story'}));
+    item.description=desc;
+    item.generated=true;
+    item.generatedRequested=true;
+    item.linkedAlbumId='';
+    item.mediaSource='generated';
+    item.mediaUrl=generated.url;
+    item.fileName='';
+    renderStoryEditSheet();
+    renderStoryViewer();
+  }catch(error){
+    const reason=String(error?.message||error||'未知错误');
+    alert(reason==='bridge_not_connected'?'当前没有连接到 Roche 生图接口。请先在 Roche 生图设置里完成配置。':`生图失败：${reason}`);
+  }
 });
 document.getElementById('storyEditSaveBtn')?.addEventListener('click',()=>{
   const owner=storyViewerState.owner;
@@ -9014,7 +9035,7 @@ function updatePostEditSourceUI(post){
     postEditSourceBadge.textContent=isVideo?'当前来源：视频描述':mode==='album'?'当前来源：角色私人相册':mode==='generated'?'当前来源：按描述生图':mode==='upload'?'当前来源：上传图片 + 图片描述':'当前来源：默认示例图 + 图片描述';
   }
   if(sourceNote){
-    sourceNote.textContent=mode==='album'?'左右滑动浏览该角色相册候选；当前停留的卡片就是这条动态选择的相册素材。':mode==='generated'?'正式接入生图 API 后，会用当前图片描述生成真实图片；同一条动态现在支持 1–4 张图，每张图的描述分开保存。':mode==='upload'?'上传模式支持 1–4 张图；你可以继续追加图片，也可以单独修改当前这张的描述。':'默认图片只是视觉占位；现在同一条动态支持 1–4 张图，每张图都可以写独立图片描述。';
+    sourceNote.textContent=mode==='album'?'左右滑动浏览该角色相册候选；当前停留的卡片就是这条动态选择的相册素材。':mode==='generated'?'会直接调用 Roche 当前生图接口，用这张图的图片描述生成真实图片；插件内未单独配置时，默认继承 Roche 生图配置。':mode==='upload'?'上传模式支持 1–4 张图；你可以继续追加图片，也可以单独修改当前这张的描述。':'默认图片只是视觉占位；现在同一条动态支持 1–4 张图，每张图都可以写独立图片描述。';
   }
   if(genAction)genAction.classList.toggle('show',mode==='generated' && !isVideo);
   if(uploadAction)uploadAction.classList.toggle('show',mode==='upload' && !isVideo);
@@ -9259,7 +9280,7 @@ document.getElementById('postEditChooseUpload')?.addEventListener('click',reques
 document.getElementById('postEditAddMedia')?.addEventListener('click',addPostEditMediaSlot);
 document.getElementById('postEditDeleteMedia')?.addEventListener('click',deleteCurrentPostEditMedia);
 document.getElementById('postEditUploadInput')?.addEventListener('change',async event=>{await handlePostEditUploadFiles(event.target.files);event.target.value='';});
-document.getElementById('postEditGenerateImage')?.addEventListener('click',()=>{const post=posts[activePostMenuIndex];if(!post)return;const desc=postEditMediaDescription.value.trim();if(!desc){alert('先写图片描述再生图');return;}commitPostEditCurrentDescription(post);post.mediaDescription=desc;post.mediaSource='generated';post.linkedAlbumId='';ensurePostEditMediaItems(post);post.mediaItems[post.mediaCarouselIndex||0]={...post.mediaItems[post.mediaCarouselIndex||0],desc,source:'generated'};ensurePostFallbackMedia(post,activePostMenuIndex||0);updatePostEditSourceUI(post);renderPostEditCarousel(post);alert('正式版这里调用 Roche 图片生成接口；生成成功后会直接替换当前这张图片，不自动存回角色相册。');});
+document.getElementById('postEditGenerateImage')?.addEventListener('click',async ()=>{const post=posts[activePostMenuIndex];if(!post)return;const desc=postEditMediaDescription.value.trim();if(!desc){alert('先写图片描述再生图');return;}const btn=document.getElementById('postEditGenerateImage');try{const generated=await withINSImageButtonBusy(btn,'生图中…',()=>requestRocheGeneratedImage({description:desc,entry:'post_edit'}));commitPostEditCurrentDescription(post);post.mediaDescription=desc;post.mediaText=desc;post.mediaSource='generated';post.linkedAlbumId='';const items=ensurePostEditMediaItems(post);const idx=Math.max(0,Math.min(post.mediaCarouselIndex||0,Math.max(0,items.length-1)));items[idx]={...items[idx],url:generated.url,desc,source:'generated',draft:false};post.mediaItems=items;post.mediaCarouselIndex=idx;post.mediaUrl=generated.url;post.fallbackMediaUrl='';post.fallbackMediaId='';ensurePostFallbackMedia(post,activePostMenuIndex||0);updatePostEditSourceUI(post);renderPostEditCarousel(post);}catch(error){const reason=String(error?.message||error||'未知错误');alert(reason==='bridge_not_connected'?'当前没有连接到 Roche 生图接口。请先在 Roche 生图设置里完成配置。':`生图失败：${reason}`);}});
 document.getElementById('postEditSave')?.addEventListener('click',saveActivePostEdit);
 
 
@@ -9748,7 +9769,7 @@ function getINSImagePromptConfig(){
   const negative=(insImagePromptSettings.negative||'').trim();
   return {
     descriptionLanguage:insImagePromptSettings.descriptionLanguage||'zh',
-    source:positive?'ins_override':'inherit_roche_global',
+    source:(positive||negative)?'ins_override':'inherit_roche_global',
     positivePrompt:positive,
     negativePrompt:negative
   };
@@ -9762,6 +9783,151 @@ function buildINSImageGenerationRouting(mediaDescription=''){
     negativePrompt:cfg.negativePrompt,
     composedPrompt:cfg.positivePrompt?`${cfg.positivePrompt}\n${String(mediaDescription||'').trim()}`:String(mediaDescription||'').trim()
   };
+}
+
+function getINSImageInternalPositive(entry='feed'){
+  const target=String(entry||'feed').toLowerCase();
+  const common='真实自然的社交媒体照片，适合 INS 发布；生活化、日常感、不过度棚拍；无水印、无 logo、无拼贴字卡、无界面截图、无多余文字叠层。';
+  if(target==='story')return common+' Story 画面更轻即时，像手机随手拍，但依然清晰自然。';
+  if(target==='post_edit')return common+' 用于替换当前动态图片，保留原有图片描述语义，不要跑题。';
+  return common+' Feed 画面可稍微更完整，像真实用户发布的单张或多图内容。';
+}
+function getINSImageInternalNegative(entry='feed'){
+  return '不要生成水印、UI 截图、营销海报排版、过度文字、畸形肢体、严重失真、低清晰度、明显 AI 瑕疵。';
+}
+function getRocheImageBridge(){
+  const direct=window.NiniINSRocheBridge||window.RocheBridge||window.RocheImageBridge||null;
+  if(direct)return direct;
+  try{
+    if(window.parent && window.parent!==window){
+      return window.parent.NiniINSRocheBridge||window.parent.RocheBridge||window.parent.RocheImageBridge||null;
+    }
+  }catch(e){}
+  return null;
+}
+async function getRocheImageConfigSnapshot(){
+  const bridge=getRocheImageBridge();
+  const out={channel:'',endpoint:'',model:'',positivePrompt:'',negativePrompt:'',raw:null};
+  if(!bridge)return out;
+  const tries=[
+    ()=>bridge.getImageConfig?.(),
+    ()=>bridge.image?.getConfig?.(),
+    ()=>bridge.ai?.getImageConfig?.(),
+    ()=>bridge.imageConfig?.get?.(),
+    ()=>bridge.getConfig?.('image'),
+    ()=>bridge.invoke?.('image.getConfig',{}),
+    ()=>bridge.call?.('image.getConfig',{})
+  ];
+  for(const fn of tries){
+    if(typeof fn!=='function')continue;
+    try{
+      const value=await fn();
+      if(!value)continue;
+      const raw=value?.data||value?.config||value;
+      out.raw=raw;
+      out.channel=String(raw?.channel||raw?.provider||raw?.format||raw?.mode||'');
+      out.endpoint=String(raw?.endpoint||raw?.baseURL||raw?.baseUrl||raw?.url||'');
+      out.model=String(raw?.model||raw?.modelName||raw?.imageModel||'');
+      out.positivePrompt=String(raw?.defaultPositive||raw?.positivePrompt||raw?.positive||raw?.promptPositive||'');
+      out.negativePrompt=String(raw?.defaultNegative||raw?.negativePrompt||raw?.negative||raw?.promptNegative||'');
+      return out;
+    }catch(error){}
+  }
+  return out;
+}
+function buildINSImageGenerationRequest({description='',entry='feed',count=1}={}){
+  const cleanDesc=String(description||'').trim();
+  const cfg=getINSImagePromptConfig();
+  const internalPositive=getINSImageInternalPositive(entry);
+  const internalNegative=getINSImageInternalNegative(entry);
+  return getRocheImageConfigSnapshot().then(rocheCfg=>{
+    const basePositive=(cfg.positivePrompt||'').trim() || (rocheCfg.positivePrompt||'').trim();
+    const baseNegative=(cfg.negativePrompt||'').trim() || (rocheCfg.negativePrompt||'').trim();
+    const finalPositive=[basePositive,internalPositive,cleanDesc].filter(Boolean).join('\n');
+    const finalNegative=[baseNegative,internalNegative].filter(Boolean).join('\n');
+    const payload={
+      prompt:finalPositive,
+      description:cleanDesc,
+      positivePrompt:finalPositive,
+      negativePrompt:finalNegative,
+      entry,
+      count:Math.max(1,Number(count)||1),
+      aspectRatio:'1:1',
+      meta:{
+        source:'ins',
+        plugin:'INS',
+        routingSource:cfg.source,
+        descriptionLanguage:cfg.descriptionLanguage||'zh',
+        rocheChannel:rocheCfg.channel||'',
+        rocheEndpoint:rocheCfg.endpoint||'',
+        rocheModel:rocheCfg.model||''
+      }
+    };
+    return {payload,rocheCfg};
+  });
+}
+function normalizeGeneratedImageUrl(value){
+  if(!value)return '';
+  const raw=String(value||'').trim();
+  if(!raw)return '';
+  if(/^data:image\//i.test(raw) || /^https?:\/\//i.test(raw) || /^blob:/i.test(raw))return raw;
+  if(/^[A-Za-z0-9+/=\n\r]+$/.test(raw) && raw.length>96)return `data:image/png;base64,${raw.replace(/[\r\n]+/g,'')}`;
+  return '';
+}
+function extractGeneratedImageUrl(result){
+  if(!result)return '';
+  if(typeof result==='string')return normalizeGeneratedImageUrl(result);
+  if(Array.isArray(result)){
+    for(const item of result){
+      const url=extractGeneratedImageUrl(item);
+      if(url)return url;
+    }
+    return '';
+  }
+  const directKeys=['url','imageUrl','outputUrl','src','image','base64','b64_json'];
+  for(const key of directKeys){
+    const url=normalizeGeneratedImageUrl(result?.[key]);
+    if(url)return url;
+  }
+  const nested=[result?.data,result?.images,result?.results,result?.output,result?.items,result?.choices];
+  for(const part of nested){
+    const url=extractGeneratedImageUrl(part);
+    if(url)return url;
+  }
+  return '';
+}
+async function requestRocheGeneratedImage({description='',entry='feed',count=1}={}){
+  const cleanDesc=String(description||'').trim();
+  if(!cleanDesc)throw new Error('missing_description');
+  const bridge=getRocheImageBridge();
+  if(!bridge)throw new Error('bridge_not_connected');
+  const {payload,rocheCfg}=await buildINSImageGenerationRequest({description:cleanDesc,entry,count});
+  const calls=[
+    ()=>bridge.generateImage?.(payload),
+    ()=>bridge.image?.generate?.(payload),
+    ()=>bridge.ai?.generateImage?.(payload),
+    ()=>bridge.invoke?.('image.generate',payload),
+    ()=>bridge.call?.('image.generate',payload),
+    ()=>bridge.generate?.({type:'image',...payload})
+  ];
+  let lastError=null;
+  for(const fn of calls){
+    if(typeof fn!=='function')continue;
+    try{
+      const result=await fn();
+      const url=extractGeneratedImageUrl(result);
+      if(url)return {url,result,request:payload,config:rocheCfg};
+      lastError=new Error('no_image_url');
+    }catch(error){lastError=error;}
+  }
+  throw lastError||new Error('image_generation_unavailable');
+}
+async function withINSImageButtonBusy(button,busyText,work){
+  const btn=button||null;
+  const oldText=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent=busyText||'生成中…';}
+  try{return await work();}
+  finally{if(btn){btn.disabled=false;btn.textContent=oldText||'生图';}}
 }
 
 const insSubApiSettings = {
@@ -12651,6 +12817,43 @@ startINSAutoPublishTimer();
           roche && roche.conversation && roche.conversation.list
             ? await roche.conversation.list(args || {})
             : []
+      },
+
+      async getImageConfig() {
+        if (roche && roche.ai && typeof roche.ai.getImageConfig === 'function') return await roche.ai.getImageConfig();
+        if (roche && roche.image && typeof roche.image.getConfig === 'function') return await roche.image.getConfig();
+        if (roche && roche.image && roche.image.config && typeof roche.image.config.get === 'function') return await roche.image.config.get();
+        if (roche && typeof roche.getImageConfig === 'function') return await roche.getImageConfig();
+        if (roche && typeof roche.invoke === 'function') return await roche.invoke('image.getConfig', {});
+        return null;
+      },
+
+      async generateImage(payload) {
+        if (roche && roche.ai && typeof roche.ai.generateImage === 'function') return await roche.ai.generateImage(payload);
+        if (roche && roche.image && typeof roche.image.generate === 'function') return await roche.image.generate(payload);
+        if (roche && roche.images && typeof roche.images.generate === 'function') return await roche.images.generate(payload);
+        if (roche && typeof roche.generateImage === 'function') return await roche.generateImage(payload);
+        if (roche && typeof roche.invoke === 'function') return await roche.invoke('image.generate', payload);
+        throw new Error('image_generation_unavailable');
+      },
+
+      image: {
+        getConfig: async () => {
+          if (roche && roche.ai && typeof roche.ai.getImageConfig === 'function') return await roche.ai.getImageConfig();
+          if (roche && roche.image && typeof roche.image.getConfig === 'function') return await roche.image.getConfig();
+          if (roche && roche.image && roche.image.config && typeof roche.image.config.get === 'function') return await roche.image.config.get();
+          if (roche && typeof roche.getImageConfig === 'function') return await roche.getImageConfig();
+          if (roche && typeof roche.invoke === 'function') return await roche.invoke('image.getConfig', {});
+          return null;
+        },
+        generate: async payload => {
+          if (roche && roche.ai && typeof roche.ai.generateImage === 'function') return await roche.ai.generateImage(payload);
+          if (roche && roche.image && typeof roche.image.generate === 'function') return await roche.image.generate(payload);
+          if (roche && roche.images && typeof roche.images.generate === 'function') return await roche.images.generate(payload);
+          if (roche && typeof roche.generateImage === 'function') return await roche.generateImage(payload);
+          if (roche && typeof roche.invoke === 'function') return await roche.invoke('image.generate', payload);
+          throw new Error('image_generation_unavailable');
+        }
       },
 
       async injectShortTerm(payload) {
