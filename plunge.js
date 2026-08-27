@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：INS
-// 版本：1.1.1（Roche 生图设置自动关联显示）
+// 版本：1.1.4（内置 Feed / Reels 文案与评论自然化）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,7 +11,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.1.1';
+  const VERSION = '1.1.4';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   let ACTIVE_DIRECT_HOST = null;
@@ -200,7 +200,7 @@ const NAV_ASSET={
 };
 
 const posts=[
-{id:'p_rec_food',type:'stranger',followed:false,author:'heyy.he',avatar:'H',sub:'为你推荐',mediaClass:'m1',mediaText:'浙江日常美食照片。',mediaDescription:'浙江的日常美食随拍，餐桌上摆着刚上桌的食物，光线自然，像普通用户随手记录的一顿饭。',mediaUrl:'https://imgbed.heliar.top/i/Y7dNw_BRdx54VeOS_Screenshot_20260826_214751.webp',likes:1284,comments:45,reposts:31,shares:66,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'下班后路过就进去吃了，没想到每道菜都挺稳。最后那碗汤比照片里看着还好喝，下次应该还会来。',captionTranslation:'',captionShort:'下班后路过就进去吃了，没想到每道菜都挺稳。最后那碗汤比照片里看着还好喝，下次应该还会来。',captionLong:'',translation:'',sourceLanguage:'zh',tags:['#daily','#food','#weekend']},
+{id:'p_rec_food',type:'stranger',followed:false,author:'heyy.he',avatar:'H',sub:'为你推荐',mediaClass:'m1',mediaText:'莓果奶油面包、白草莓和咖啡的日常餐桌照片。',mediaDescription:'木桌上的日常甜食随拍：白色椭圆盘里是一条表面烤成焦糖色的长面包，中间挤着白色奶油并整齐放着一排蓝莓；后方浅色碗里装着白草莓和黑莓，右侧是一杯浅棕色冰咖啡或奶咖。自然室内光线，普通用户随手记录的一顿甜食。',mediaUrl:'https://imgbed.heliar.top/i/Y7dNw_BRdx54VeOS_Screenshot_20260826_214751.webp',likes:1284,comments:45,reposts:31,shares:66,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'本来只想吃个面包，最后旁边那碗莓果也一起解决了。白草莓没想象中甜，蓝莓奶油这个倒是会再买。咖啡就……正常发挥。',captionTranslation:'',captionShort:'本来只想吃个面包，最后旁边那碗莓果也一起解决了。白草莓没想象中甜，蓝莓奶油这个倒是会再买。咖啡就……正常发挥。',captionLong:'',translation:'',sourceLanguage:'zh',tags:['#daily','#food','#dessert']},
 {id:'p_rec_idol',type:'stranger',followed:false,author:'seoyun.after',avatar:'H',sub:'为你推荐',mediaClass:'m2',mediaText:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaDescription:'活动结束后的后台休息室，年轻艺人坐在化妆镜前，黑色舞台服还没有换下，桌上放着水、耳返和散开的化妆用品。镜子周围是暖白色灯光，头发和妆容带着一点演出结束后的凌乱感，像工作人员随手留下的一张自然幕后照片，不刻意看镜头。',mediaUrl:'',likes:26400,comments:1287,reposts:807,shares:1930,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'终于收工了。耳返摘下来的那一刻才发现今天真的结束了，回去洗个澡就睡。谢谢来看舞台的人。',captionTranslation:'',captionShort:'终于收工了。耳返摘下来的那一刻才发现今天真的结束了，回去洗个澡就睡。谢谢来看舞台的人。',captionLong:'',translation:'',sourceLanguage:'ko',tags:['#backstage','#today','#seoul']},
 {id:'p_rec_swiss',type:'stranger',followed:false,author:'mialater',avatar:'M',sub:'为你推荐',mediaClass:'m3',mediaText:'瑞士雪山旅行照片。',mediaDescription:'瑞士雪山旅行随拍，远处是高耸雪峰与开阔山谷，空气清透，光线干净，带有真实旅行记录感。',mediaUrl:'https://imgbed.heliar.top/i/Z_jJ7jv3jZq6bkaY_Screenshot_20260826_214453.webp',likes:6942,comments:236,reposts:142,shares:417,liked:false,reposted:false,expanded:false,translated:false,captionOriginal:'早上拉开窗帘就是这个景色，站着看了一会儿才想起来拿手机。今天没排什么行程，准备沿着湖边慢慢走。',captionTranslation:'',captionShort:'早上拉开窗帘就是这个景色，站着看了一会儿才想起来拿手机。今天没排什么行程，准备沿着湖边慢慢走。',captionLong:'',translation:'',sourceLanguage:'en',tags:['#switzerland','#mountains','#travel']}
 ];
@@ -679,21 +679,21 @@ caption:'帰りの電車を一本遅らせた。海の色が変わるまで、�
 captionTranslation:'回去的电车晚坐了一班。想再待一会儿，等海的颜色慢慢变掉。',
 sourceLanguage:'ja',
 comments:[
-{initial:'?',author:'natsu.zip',displayName:'なつ',text:'この時間の海、電車を一本逃しても見ていたい',translation:'这个时间的海，就算错过一班电车也想继续看',sourceLanguage:'ja',translated:false},
-{initial:'?',author:'melo__21',displayName:'Melo',text:'the window reflections made this feel like a memory',translation:'车窗倒影让这段画面像一段记忆',sourceLanguage:'en',translated:false},
-{initial:'?',author:'haeun.frame',displayName:'해은',text:'파도 소리까지 들리는 것 같아',translation:'感觉连海浪声都能听见',sourceLanguage:'ko',translated:false},
-{initial:'?',author:'cloudyday_8',displayName:'阴天也出门',text:'傍晚这段路人是不是会比白天多很多',translation:'',sourceLanguage:'zh',translated:false},
-{initial:'?',author:'00sora',displayName:'そら',text:'最後の電車の明かりが消えるところ、好き',translation:'很喜欢最后电车灯光消失的那一段',sourceLanguage:'ja',translated:false}]},
+{initial:'?',author:'natsu.zip',displayName:'なつ',text:'一本遅らせるのわかる',translation:'能理解为什么要晚坐一班',sourceLanguage:'ja',translated:false},
+{initial:'?',author:'melo__21',displayName:'Melo',text:'okay now I need to know what stop this was',translation:'好了，现在我必须知道这是哪一站',sourceLanguage:'en',translated:false},
+{initial:'?',author:'haeun.frame',displayName:'해은',text:'이 시간대 바람 진짜 좋겠다',translation:'这个时间的海风肯定特别舒服',sourceLanguage:'ko',translated:false},
+{initial:'?',author:'cloudyday_8',displayName:'阴天也出门',text:'我会在这坐到天黑再走',translation:'',sourceLanguage:'zh',translated:false},
+{initial:'?',author:'00sora',displayName:'そら',text:'夏終わらないでほしい😭',translation:'希望夏天不要结束😭',sourceLanguage:'ja',translated:false}]},
 reel_amusement_01:{
 caption:'사진보다 영상에 웃음소리가 더 많이 남았다. 다들 집에 갈 때 목이 쉬어 있었음 ㅋㅋ',
 captionTranslation:'比起照片，视频里留下了更多笑声。大家回家的时候嗓子都哑了ㅋㅋ',
 sourceLanguage:'ko',
 comments:[
-{initial:'?',author:'yena.03',displayName:'예나',text:'마지막에 다들 목소리 쉰 거 너무 현실적이야 ㅋㅋ',translation:'最后大家嗓子都哑了也太真实了ㅋㅋ',sourceLanguage:'ko',translated:false},
-{initial:'?',author:'peachfilm',displayName:'Peach',text:'who was filming while everyone kept crashing into the frame',translation:'大家不停撞进镜头时到底是谁在拍',sourceLanguage:'en',translated:false},
-{initial:'?',author:'yuuna_day',displayName:'ゆうな',text:'ぬいぐるみ結局だれが持って帰ったの',translation:'那个玩偶最后到底是谁带回家了',sourceLanguage:'ja',translated:false},
-{initial:'?',author:'cloudroom_',displayName:'云房间',text:'这种视频回看时应该会比当天更好笑',translation:'',sourceLanguage:'zh',translated:false},
-{initial:'?',author:'sora.wav',displayName:'소라',text:'회전목마 앞 장면은 생각보다 조용해서 더 좋다',translation:'旋转木马前那一段比想象中安静，反而更喜欢',sourceLanguage:'ko',translated:false}]}
+{initial:'?',author:'yena.03',displayName:'예나',text:'목 쉬었다는 거 너무 현실적 ㅋㅋ',translation:'嗓子都哑了这点也太真实了ㅋㅋ',sourceLanguage:'ko',translated:false},
+{initial:'?',author:'peachfilm',displayName:'Peach',text:'the camera person deserves a medal 😭',translation:'拍视频的人值得一枚奖牌😭',sourceLanguage:'en',translated:false},
+{initial:'?',author:'yuuna_day',displayName:'ゆうな',text:'ぬいぐるみ結局だれが持って帰ったの笑',translation:'那个玩偶最后到底是谁带回家的笑',sourceLanguage:'ja',translated:false},
+{initial:'?',author:'cloudroom_',displayName:'云房间',text:'后面抢玩偶那段我看了三遍',translation:'',sourceLanguage:'zh',translated:false},
+{initial:'?',author:'sora.wav',displayName:'소라',text:'나는 첫번째 기구 타고 바로 집 갔을 듯',translation:'换我坐完第一个项目大概就直接回家了',sourceLanguage:'ko',translated:false}]}
 };
 Object.entries(BUILTIN_REELS_SOCIAL_COPY).forEach(([id,copy])=>{
   const item=reelsV15State.items.find(entry=>entry.id===id);
@@ -7937,23 +7937,23 @@ let commentReplyTo = null;
 
 const commentsByPost = {
 p_rec_food:[
-{author:'baozi.afterwork',displayName:'下班吃什么',text:'这家周五晚上是不是要排很久',translation:'',sourceLanguage:'zh',generated:true},
-{author:'chaeon.zip',displayName:'채온',text:'국물 색깔 보니까 밥 한 공기 바로 생각난다',translation:'看到汤的颜色就立刻想来一碗饭',sourceLanguage:'ko',generated:true},
-{author:'yuu_tabememo',displayName:'ゆう',text:'最後のスープがいちばん気になる',translation:'最在意最后那碗汤',sourceLanguage:'ja',generated:true},
-{author:'lateplate.jpg',displayName:'Late Plate',text:'the second dish looks like the one I would order twice',translation:'第二道菜看起来像是我会再点一份的那种',sourceLanguage:'en',generated:true},
-{author:'nineteenfloor',displayName:'十九楼',text:'“随便吃点”一般都是这种结局',translation:'',sourceLanguage:'zh',generated:true}],
+{author:'baozi.afterwork',displayName:'下班吃什么',text:'等一下 那个白草莓真的甜吗',translation:'',sourceLanguage:'zh',generated:true},
+{author:'chaeon.zip',displayName:'채온',text:'저 빵 한입 먹으면 크림 옆으로 다 나올 것 같아 ㅋㅋ',translation:'那个面包感觉咬一口奶油就会从旁边全挤出来ㅋㅋ',sourceLanguage:'ko',generated:true},
+{author:'yuu_tabememo',displayName:'ゆう',text:'白い苺はじめて見た、味ふつうの苺と違う？',translation:'第一次见白草莓，味道和普通草莓不一样吗？',sourceLanguage:'ja',generated:true},
+{author:'lateplate.jpg',displayName:'Late Plate',text:'wait are those white strawberries??',translation:'等等，那些是白草莓吗？？',sourceLanguage:'en',generated:true},
+{author:'nineteenfloor',displayName:'十九楼',text:'咖啡一般但面包会回购 这句太真实了',translation:'',sourceLanguage:'zh',generated:true}],
 p_rec_idol:[
-{author:'minseo.zip',displayName:'민서',text:'오늘 무대 끝나고 바로 올 줄 몰랐어, 진짜 수고했어',translation:'没想到今天舞台结束就马上发了，真的辛苦了',sourceLanguage:'ko',generated:true},
-{author:'winterpage_',displayName:'Winter Page',text:'please get some sleep before checking the comments again',translation:'先去睡一觉再回来看评论吧',sourceLanguage:'en',generated:true},
-{author:'nana_082',displayName:'ナナ',text:'イヤモニ置いたままなのが本当に終演後って感じ',translation:'耳返就那样放着，很有演出刚结束的感觉',sourceLanguage:'ja',generated:true},
-{author:'lilacroom',displayName:'紫房间',text:'后台桌面比我想象中还要真实地乱',translation:'',sourceLanguage:'zh',generated:true},
-{author:'studio_han',displayName:'한 스튜디오',text:'내일 일정 없었으면 좋겠다 ㅋㅋ 얼른 들어가',translation:'希望明天没有行程ㅋㅋ快回去吧',sourceLanguage:'ko',generated:true}],
+{author:'minseo.zip',displayName:'민서',text:'아니 일단 물부터 마셔 ㅋㅋ 오늘 진짜 수고했어',translation:'不是，先喝水啦ㅋㅋ 今天真的辛苦了',sourceLanguage:'ko',generated:true},
+{author:'winterpage_',displayName:'Winter Page',text:'you posted before even changing out of the stage clothes 😭',translation:'你居然连舞台服都没换就先发了😭',sourceLanguage:'en',generated:true},
+{author:'nana_082',displayName:'ナナ',text:'イヤモニそのまま置いてあるのリアルすぎる笑',translation:'耳返就那样放着也太真实了笑',sourceLanguage:'ja',generated:true},
+{author:'lilacroom',displayName:'紫房间',text:'评论区明天还在 你先去睡吧',translation:'',sourceLanguage:'zh',generated:true},
+{author:'studio_han',displayName:'한 스튜디오',text:'오늘 엔딩 멘트 살짝 꼬인 거 나만 들었나 ㅋㅋ',translation:'今天结尾那句稍微说卡了一下，只有我听到了吗ㅋㅋ',sourceLanguage:'ko',generated:true}],
 p_rec_swiss:[
-{author:'ellie.wav',displayName:'Ellie',text:'did you actually go for the walk or stay by the window all morning',translation:'你后来真的出去散步了，还是整个早上都待在窗边',sourceLanguage:'en',generated:true},
-{author:'noah.unterwegs',displayName:'Noah unterwegs',text:'Heute sieht man die Berge endlich ohne Wolken.',translation:'今天终于能看到没有云挡住的山了。',sourceLanguage:'de',generated:true},
-{author:'haru.route',displayName:'하루',text:'일정 없는 여행 하루가 제일 부럽다',translation:'最羡慕旅行里没有行程的一天',sourceLanguage:'ko',generated:true},
-{author:'pocketcloud',displayName:'口袋云',text:'这种窗景会让我出门计划直接推迟半小时',translation:'',sourceLanguage:'zh',generated:true},
-{author:'claire.enroute',displayName:'Claire en route',text:'La lumière du matin est presque trop nette.',translation:'清晨的光线清晰得几乎有点不真实。',sourceLanguage:'fr',generated:true}]
+{author:'ellie.wav',displayName:'Ellie',text:'I would 100% miss breakfast just staring out that window',translation:'换我绝对会因为盯着这个窗景看而错过早餐',sourceLanguage:'en',generated:true},
+{author:'noah.unterwegs',displayName:'Noah unterwegs',text:'Bin neidisch. Hier seit drei Tagen nur Regen 😭',translation:'羡慕了，我这里已经连续下三天雨😭',sourceLanguage:'de',generated:true},
+{author:'haru.route',displayName:'하루',text:'나였으면 산책 안 나가고 침대에 있었을 듯 ㅋㅋ',translation:'换我大概不会去散步，直接躺床上了ㅋㅋ',sourceLanguage:'ko',generated:true},
+{author:'pocketcloud',displayName:'口袋云',text:'这种窗景我会先坐着发呆半小时',translation:'',sourceLanguage:'zh',generated:true},
+{author:'claire.enroute',displayName:'Claire en route',text:'Tu avais pris quelle ligne pour arriver là ?',translation:'你是坐哪条线到这里的？',sourceLanguage:'fr',generated:true}]
 };
 const feedCommentVisibleCountByPost=Object.create(null);
 
