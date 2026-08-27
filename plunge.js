@@ -1,6 +1,6 @@
 // ============================================================
 // 插件：INS
-// 版本：1.1.4（内置 Feed / Reels 文案与评论自然化）
+// 版本：1.2.0（DM 双向分享卡 / 可点详情 / 评论增量）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -11,8 +11,30 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1078';
   const APP_ID = 'nini-ins-home-v1078';
-  const VERSION = '1.1.4';
+  const VERSION = '1.2.0';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
+
+  const DM_SHARE_V120_STYLE = `
+/* ===== INS v1.2.0 DM Share ===== */
+.dm-share-card-v120{width:min(262px,82vw);border-radius:18px;overflow:hidden;border:1px solid #e5e7ec;background:#fff;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.05);touch-action:manipulation}
+.dm-share-card-v120.feed{color:#111;background:#fff}.dm-share-card-v120.reel{color:#fff;background:#0a0a0b;border-color:#222}
+.dm-share-card-v120 .dm-share-media-v120{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center;font-size:11px;line-height:1.55;padding:16px;background:#f2f3f5;color:#676c74}
+.dm-share-card-v120.reel .dm-share-media-v120{aspect-ratio:4/5;background:#050506;color:#f5f5f6;padding:20px;white-space:pre-wrap}
+.dm-share-card-v120 .dm-share-media-v120 img{width:100%;height:100%;object-fit:cover;display:block}
+.dm-share-card-v120 .dm-share-copy-v120{padding:10px 11px 12px}.dm-share-card-v120.reel .dm-share-copy-v120{background:#0a0a0b}
+.dm-share-kicker-v120{font-size:9px;color:#9a9ea5;margin-bottom:5px}.dm-share-card-v120.reel .dm-share-kicker-v120{color:#8d8e93}
+.dm-share-author-v120{font-size:12px;font-weight:850;line-height:1.25}.dm-share-caption-v120{margin-top:5px;font-size:10px;line-height:1.45;color:#4e535a;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.dm-share-card-v120.reel .dm-share-caption-v120{color:#ececef}
+.dm-share-open-v120{margin-top:8px;font-size:9px;color:#8a8f96}.dm-share-card-v120.reel .dm-share-open-v120{color:#9c9da2}
+.dm-msg-row.them .dm-share-card-v120{max-width:min(262px,78vw)}
+.dm-share-detail-v120{position:absolute;inset:0;z-index:190;display:none;flex-direction:column;background:#fff;color:#111}.dm-share-detail-v120.show{display:flex}.dm-share-detail-v120.reel{background:#000;color:#fff}
+.dm-share-detail-head-v120{height:58px;flex:0 0 58px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #eceef2;background:inherit}.dm-share-detail-v120.reel .dm-share-detail-head-v120{border-color:#202126}
+.dm-share-detail-back-v120{width:38px;height:38px;border:0;background:transparent;color:inherit;font-size:30px;line-height:1;display:grid;place-items:center;cursor:pointer}.dm-share-detail-title-v120{min-width:0;flex:1}.dm-share-detail-title-v120 strong{display:block;font-size:14px}.dm-share-detail-title-v120 span{display:block;margin-top:2px;font-size:9px;color:#8d9198}.dm-share-detail-v120.reel .dm-share-detail-title-v120 span{color:#8f9198}
+.dm-share-detail-scroll-v120{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}.dm-share-detail-scroll-v120::-webkit-scrollbar{display:none}
+.dm-share-detail-media-v120{width:100%;aspect-ratio:1/1;background:#f1f2f4;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center;padding:20px;color:#555b63;font-size:12px;line-height:1.6;white-space:pre-wrap}.dm-share-detail-v120.reel .dm-share-detail-media-v120{aspect-ratio:4/5;background:#050506;color:#fff;padding:28px}.dm-share-detail-media-v120 img{width:100%;height:100%;object-fit:cover;display:block}
+.dm-share-detail-body-v120{padding:13px 14px}.dm-share-detail-caption-v120{font-size:12px;line-height:1.62;white-space:pre-wrap}.dm-share-detail-meta-v120{margin-top:7px;font-size:9px;color:#92969d}.dm-share-detail-v120.reel .dm-share-detail-meta-v120{color:#8a8c92}
+.dm-share-comments-head-v120{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid #eceef2}.dm-share-detail-v120.reel .dm-share-comments-head-v120{border-color:#22242a}.dm-share-comments-head-v120 strong{font-size:12px}.dm-share-comment-v120{padding:10px 0;border-bottom:1px solid #eef0f3}.dm-share-detail-v120.reel .dm-share-comment-v120{border-color:#1f2024}.dm-share-comment-v120 b{font-size:10px}.dm-share-comment-v120 p{margin:4px 0 0;font-size:11px;line-height:1.45}.dm-share-comment-translation-v120{margin-top:4px;font-size:9px;line-height:1.4;color:#8b9097}.dm-share-detail-v120.reel .dm-share-comment-translation-v120{color:#9c9fa5}
+.dm-share-load-v120{width:100%;height:40px;margin:12px 0 4px;border:0;border-radius:12px;background:#f0f1f4;color:#666b73;font-size:11px;font-weight:800;cursor:pointer}.dm-share-detail-v120.reel .dm-share-load-v120{background:#18191d;color:#f2f2f4}.dm-share-load-v120:disabled{opacity:.58}
+`;
 
   let ACTIVE_DIRECT_HOST = null;
   let ACTIVE_DIRECT_STYLE = null;
@@ -875,7 +897,8 @@ function getReelV15ShareSnapshot(id){
     caption:item.caption,
     mediaUrl:'',
     mediaDescription:'Reel 视频描述\n'+item.videoDescription,
-    mediaClass:'m1'
+    mediaClass:'m1',
+    senderId:'user',source:'linked',contentType:'reel',sourceLanguage:item.sourceLanguage||'',captionTranslation:item.captionTranslation||'',location:item.location||'',tags:item.tags||[],metrics:{likes:item.likes||0,comments:item.comments||0,reposts:item.reposts||0,shares:item.shares||0}
   });
 }
 function sendReelV15ToDM(recipient){
@@ -1821,7 +1844,19 @@ function makeDMContextCard(kind,data={}){
     attitude:data.attitude||'',
     storyId:data.storyId||'',
     storyDescription:data.storyDescription||'',
-    contextSummary:data.contextSummary||''
+    contextSummary:data.contextSummary||'',
+    cardId:data.cardId||`dmcard_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+    postId:data.postId||data.contentId||'',
+    senderId:data.senderId||'user',
+    source:data.source||'linked',
+    contentType:data.contentType||((kind==='reel')?'reel':(kind==='post'?'feed':'')),
+    displayName:data.displayName||'',
+    captionTranslation:data.captionTranslation||'',
+    sourceLanguage:data.sourceLanguage||'',
+    location:data.location||'',
+    tags:Array.isArray(data.tags)?data.tags:[],
+    metrics:data.metrics&&typeof data.metrics==='object'?{...data.metrics}:{},
+    comments:Array.isArray(data.comments)?data.comments.map(row=>({...row})):[]
   };
   if(!card.contextSummary){
     if(kind==='story_reaction'){
@@ -1898,7 +1933,8 @@ function getSharePostSnapshot(postId){
     ].join('').trim(),
     mediaUrl: post.mediaUrl || '',
     mediaDescription: post.mediaDescription || post.mediaText || '',
-    mediaClass: post.mediaClass || 'm1'
+    mediaClass: post.mediaClass || 'm1',
+    senderId:'user',source:'linked',contentType:'feed',sourceLanguage:post.sourceLanguage||post.feedSourceLanguage||'',captionTranslation:post.captionTranslation||'',location:post.location||post.sub||'',tags:post.tags||[],metrics:{likes:post.likes||0,comments:post.comments||0,reposts:post.reposts||0,shares:post.shares||0}
   });
 }
 
@@ -2378,21 +2414,31 @@ function renderDMTimelineCardHTML(card){
       </div>`;
   }
 
+  if(!card.cardId)card.cardId=`dmcard_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  const type=(card.contentType||card.kind)==='reel'?'reel':'feed';
+  const incoming=normalizeSocialActorId(card.senderId||'user')!=='user';
+  const sender=incoming?getDMProfile(card.senderId):null;
+  const label=incoming
+    ? `@${escapeDMCardHTML(sender?.handle||card.senderId)} 分享了一条 ${type==='reel'?'Reel':'IG 动态'}`
+    : `你分享了一条 ${type==='reel'?'Reel':'IG 动态'}`;
   const media=card.mediaUrl
-    ? `<img src="${escapeDMCardHTML(card.mediaUrl)}" alt="分享的 IG 动态">`
-    : escapeDMCardHTML(card.mediaDescription).replace(/\n/g,'<br>');
-
-  return `
-    <div class="dm-sent-row">
-      <div class="dm-post-card">
-        <div class="dm-post-card-media ${escapeDMCardHTML(card.mediaClass)}">${media}</div>
-        <div class="dm-post-card-copy">
-          <div class="dm-post-card-label">${card.kind==='reel'?'你分享了一条 Reel':'你分享了一条 IG 动态'}</div>
-          <div class="dm-post-card-author">@${escapeDMCardHTML(card.author)}</div>
-          <div class="dm-post-card-caption">${escapeDMCardHTML(card.caption || 'IG 动态')}</div>
-        </div>
+    ? `<img src="${escapeDMCardHTML(card.mediaUrl)}" alt="分享内容">`
+    : escapeDMCardHTML(String(card.mediaDescription||'').replace(/^Reel 视频描述\s*/,'')).replace(/\n/g,'<br>');
+  const cardHtml=`
+    <div class="dm-share-card-v120 ${type}" data-dm-share-card="${escapeDMCardHTML(card.cardId)}" role="button" tabindex="0">
+      <div class="dm-share-media-v120">${media|| (type==='reel'?'Reel':'IG 动态')}</div>
+      <div class="dm-share-copy-v120">
+        <div class="dm-share-kicker-v120">${label}</div>
+        <div class="dm-share-author-v120">@${escapeDMCardHTML(card.author||'unknown')}</div>
+        <div class="dm-share-caption-v120">${escapeDMCardHTML(card.caption||'')}</div>
+        <div class="dm-share-open-v120">点击查看 · 评论区</div>
       </div>
     </div>`;
+  if(incoming){
+    const identity=sender?.identityId||card.senderId||'';
+    return `<div class="dm-msg-row them"><div class="dm-msg-avatar" data-identity-avatar="${escapeDMCardHTML(identity)}">${sender?.avatarUrl?'':escapeDMCardHTML(sender?.initial||'?')}</div>${cardHtml}</div>`;
+  }
+  return `<div class="dm-sent-row">${cardHtml}</div>`;
 }
 
 function renderDMConversationTimeline(recipient){
@@ -2607,6 +2653,141 @@ function dmSendInput(){
   input.value = '';
 }
 let dmAIReplyInFlight=false;
+
+const DM_SHARE_INTENT_STORAGE_KEY='nini-ins-dm-share-intent-v120';
+let dmShareIntentState=(()=>{try{return JSON.parse(localStorage.getItem(DM_SHARE_INTENT_STORAGE_KEY)||'{}')||{};}catch(e){return {};}})();
+let dmShareDetailActive=null;
+function persistDMShareIntentState(){try{localStorage.setItem(DM_SHARE_INTENT_STORAGE_KEY,JSON.stringify(dmShareIntentState));}catch(e){}}
+function detectDMExplicitShareRequest(text=''){
+  const t=String(text||'').toLowerCase();
+  return /(发|分享|找|给我看|看看).{0,10}(ig|instagram|动态|帖子|feed|reel|视频)|(reel|feed|动态|帖子).{0,10}(发|分享|给我看|看看)/i.test(t);
+}
+function getDMShareCandidates(actorId,limit=12){
+  const id=normalizeSocialActorId(actorId);
+  const known=new Set((typeof getActorKnowledgeEntries==='function'?getActorKnowledgeEntries(id):[]).map(row=>String(row?.event?.contentId||'')).filter(Boolean));
+  const rows=[];
+  posts.forEach(post=>rows.push({contentId:post.id,contentType:'feed',author:post.author,caption:compactDMContextText(ensureHomeFeedCaptionModel(post).chinese||post.captionOriginal||'',120),mediaDescription:compactDMContextText(post.mediaDescription||post.mediaText||'',120),known:known.has(String(post.id)),own:normalizeSocialActorId(post.author)===id}));
+  (reelsV15State.items||[]).forEach(item=>rows.push({contentId:item.id,contentType:'reel',author:item.author,caption:compactDMContextText(item.caption||'',120),mediaDescription:compactDMContextText(item.videoDescription||'',120),known:known.has(String(item.id)),own:normalizeSocialActorId(item.author)===id}));
+  rows.sort((a,b)=>(Number(b.own)-Number(a.own))||(Number(b.known)-Number(a.known)));
+  return rows.slice(0,Math.max(1,Number(limit)||12));
+}
+function normalizeDMShareCommentRow(row={}){
+  const rawAuthor=row.author;
+  const author=typeof rawAuthor==='string'?rawAuthor:String(rawAuthor?.handle||row.handle||'guest_'+Math.random().toString(36).slice(2,6));
+  return {author,displayName:String(row.displayName||rawAuthor?.displayName||author),text:String(row.textOriginal??row.text??''),translation:String(row.textTranslation??row.translation??''),sourceLanguage:String(row.sourceLanguage||''),translated:false,generated:true};
+}
+function findDMShareCard(recipient,cardId){return (dmSharedCards[recipient]||[]).find(card=>String(card.cardId||'')===String(cardId||''))||null;}
+function resolveDMShareCardContent(card){
+  if(!card)return null;
+  const type=(card.contentType||card.kind)==='reel'?'reel':'feed';
+  if(card.source==='dm_only')return {type,source:'dm_only',id:card.postId||card.cardId,author:card.author,caption:card.caption||'',captionTranslation:card.captionTranslation||'',mediaUrl:card.mediaUrl||'',mediaDescription:card.mediaDescription||'',sourceLanguage:card.sourceLanguage||'',location:card.location||'',tags:card.tags||[],metrics:card.metrics||{}};
+  if(type==='feed'){
+    let post=posts.find(row=>String(row.id)===String(card.postId||''));
+    if(!post)post=posts.find(row=>String(row.author)===String(card.author)&&String(ensureHomeFeedCaptionModel(row).chinese||row.captionOriginal||'')===String(card.caption||''));
+    if(post)return {type,source:'linked',id:post.id,author:post.author,caption:ensureHomeFeedCaptionModel(post).chinese||post.captionOriginal||'',captionTranslation:post.captionTranslation||'',mediaUrl:post.mediaUrl||'',mediaDescription:post.mediaDescription||post.mediaText||'',sourceLanguage:post.sourceLanguage||post.feedSourceLanguage||'',location:post.location||post.sub||'',tags:post.tags||[],metrics:{likes:post.likes||0,comments:post.comments||0,reposts:post.reposts||0,shares:post.shares||0}};
+  }else{
+    let item=getReelsV15Item(card.postId||'');
+    if(!item)item=(reelsV15State.items||[]).find(row=>String(row.author)===String(card.author)&&String(row.caption||'')===String(card.caption||''));
+    if(item)return {type,source:'linked',id:item.id,author:item.author,caption:item.caption||'',captionTranslation:item.captionTranslation||'',mediaUrl:'',mediaDescription:item.videoDescription||'',sourceLanguage:item.sourceLanguage||'',location:item.location||'',tags:item.tags||[],metrics:{likes:item.likes||0,comments:item.comments||0,reposts:item.reposts||0,shares:item.shares||0}};
+  }
+  return {type,source:card.source||'snapshot',id:card.postId||card.cardId,author:card.author,caption:card.caption||'',captionTranslation:card.captionTranslation||'',mediaUrl:card.mediaUrl||'',mediaDescription:card.mediaDescription||'',sourceLanguage:card.sourceLanguage||'',location:card.location||'',tags:card.tags||[],metrics:card.metrics||{}};
+}
+function getDMShareDetailComments(card,content){
+  if(!card||!content)return [];
+  if(card.source==='dm_only')return card.comments||[];
+  if(content.type==='feed')return commentsByPost[content.id]||[];
+  return reelsV15State.comments[content.id]||[];
+}
+function ensureDMShareDetailV120(){
+  let el=document.getElementById('dmShareDetailV120');if(el)return el;
+  el=document.createElement('section');el.id='dmShareDetailV120';el.className='dm-share-detail-v120';
+  el.innerHTML=`<div class="dm-share-detail-head-v120"><button class="dm-share-detail-back-v120" id="dmShareDetailBackV120" type="button">‹</button><div class="dm-share-detail-title-v120"><strong id="dmShareDetailTypeV120">IG 动态</strong><span id="dmShareDetailAuthorV120"></span></div></div><div class="dm-share-detail-scroll-v120"><div class="dm-share-detail-media-v120" id="dmShareDetailMediaV120"></div><div class="dm-share-detail-body-v120"><div class="dm-share-detail-caption-v120" id="dmShareDetailCaptionV120"></div><div class="dm-share-detail-meta-v120" id="dmShareDetailMetaV120"></div><div class="dm-share-comments-head-v120"><strong>评论</strong><span id="dmShareDetailCommentCountV120"></span></div><div id="dmShareDetailCommentsV120"></div><button class="dm-share-load-v120" id="dmShareDetailLoadV120" type="button">再加载 5 条评论</button></div></div>`;
+  (document.querySelector('.phone')||document.body).appendChild(el);
+  el.querySelector('#dmShareDetailBackV120')?.addEventListener('click',closeDMShareCardDetail);
+  el.querySelector('#dmShareDetailLoadV120')?.addEventListener('click',()=>void loadMoreDMShareCardComments());
+  return el;
+}
+function closeDMShareCardDetail(){const el=document.getElementById('dmShareDetailV120');el?.classList.remove('show','reel');dmShareDetailActive=null;}
+function renderDMShareCardDetail(){
+  if(!dmShareDetailActive)return;
+  const card=findDMShareCard(dmShareDetailActive.recipient,dmShareDetailActive.cardId);if(!card){closeDMShareCardDetail();return;}
+  const content=resolveDMShareCardContent(card);if(!content)return;
+  const el=ensureDMShareDetailV120();el.classList.toggle('reel',content.type==='reel');el.classList.add('show');
+  document.getElementById('dmShareDetailTypeV120').textContent=content.type==='reel'?'Reels':'IG 动态';
+  document.getElementById('dmShareDetailAuthorV120').textContent='@'+(content.author||'unknown');
+  const media=document.getElementById('dmShareDetailMediaV120');if(media)media.innerHTML=content.mediaUrl?`<img src="${escapeDMCardHTML(content.mediaUrl)}" alt="分享内容">`:escapeDMCardHTML(String(content.mediaDescription||'')).replace(/\n/g,'<br>');
+  const cap=document.getElementById('dmShareDetailCaptionV120');if(cap)cap.textContent=content.caption||'';
+  const meta=document.getElementById('dmShareDetailMetaV120');if(meta)meta.textContent=[content.location,(content.tags||[]).join(' '),card.source==='dm_only'?'仅保留在本次 DM':'' ].filter(Boolean).join(' · ');
+  const comments=getDMShareDetailComments(card,content);
+  const count=document.getElementById('dmShareDetailCommentCountV120');if(count)count.textContent=comments.length+' 条';
+  const box=document.getElementById('dmShareDetailCommentsV120');if(box)box.innerHTML=comments.map(row=>`<div class="dm-share-comment-v120"><b>@${escapeDMCardHTML(row.author||'guest')}</b><p>${escapeDMCardHTML(row.text||row.textOriginal||'')}</p>${row.translation||row.textTranslation?`<div class="dm-share-comment-translation-v120">${escapeDMCardHTML(row.translation||row.textTranslation)}</div>`:''}</div>`).join('')||'<div class="dm-share-comment-v120"><p>还没有评论。</p></div>';
+}
+function openDMShareCardDetail(cardId){if(!currentDMChat)return;dmShareDetailActive={recipient:currentDMChat,cardId:String(cardId||'')};renderDMShareCardDetail();}
+async function loadMoreDMShareCardComments(){
+  if(!dmShareDetailActive)return;
+  const card=findDMShareCard(dmShareDetailActive.recipient,dmShareDetailActive.cardId);const content=resolveDMShareCardContent(card);if(!card||!content)return;
+  const btn=document.getElementById('dmShareDetailLoadV120');if(btn?.disabled)return;if(btn){btn.disabled=true;btn.textContent='生成中…';}
+  try{
+    if(card.source!=='dm_only'&&content.id){
+      await generateNextPublicCommentBatch(content.type==='feed'?'feed':'reels',content.id,5);
+    }else{
+      const existing=(card.comments||[]).map(row=>({author:row.author,text:row.text||''})).slice(-12);
+      const result=await callNiniINSAI(INS_AI_TASKS.PUBLIC_COMMENT_BATCH,{actorIds:[],ownerId:card.author||'',surface:content.type==='feed'?'feed':'reels',content:{caption:content.caption,mediaDescription:content.type==='feed'?content.mediaDescription:'',videoDescription:content.type==='reel'?content.mediaDescription:'',existingComments:existing},prompt:'Generate exactly 5 new natural public comments for this DM-only shared content. Do not repeat existing comments.',extra:{actualCommentCount:5,appendBatch:true,allowKnownActors:true,allowStrangers:true,forbidCurrentUser:true}});
+      if(!result.ok)throw new Error(result.reason||'评论生成失败');
+      const rows=Array.isArray(result.data?.comments)?result.data.comments:[];if(!rows.length)throw new Error('AI 没有返回 comments');
+      card.comments=Array.isArray(card.comments)?card.comments:[];card.comments.push(...rows.slice(0,5).map(normalizeDMShareCommentRow));scheduleINSDMHistoryPersistence();
+    }
+    renderDMShareCardDetail();
+  }catch(error){alert('加载评论失败：'+(error?.message||error));}
+  finally{if(btn){btn.disabled=false;btn.textContent='再加载 5 条评论';}}
+}
+function recordActorSawSharedLinkedContent(actorId,content){
+  if(!content||!actorId||typeof recordSocialEvent!=='function')return;
+  const existing=(insSocialMemoryState?.events||[]).find(event=>event.visibility==='public'&&String(event.contentId||'')===String(content.id||''));
+  if(existing){grantActorKnowledge(actorId,existing.eventId,'dm_share_seen');return;}
+  recordSocialEvent({type:content.type==='reel'?'reel_seen':'feed_seen',actorId,targetIds:[],contentId:content.id,contentType:content.type,contentOwnerId:normalizeSocialActorId(content.author),text:content.caption||'',visibility:'public',payload:{caption:content.caption||'',mediaDescription:content.type==='feed'?content.mediaDescription:'',videoDescription:content.type==='reel'?content.mediaDescription:''},summary:`${socialActorName(actorId)}刷到了 @${content.author} 的 ${content.type==='reel'?'Reel':'IG 动态'}。`},{knownActorIds:[actorId],learnedVia:'dm_share_seen',forceEvent:true});
+}
+function createActorPublishedDMShare(actorId,type,data={}){
+  const kind=(typeof isFixedNPCHandle==='function'&&isFixedNPCHandle(actorId))?'npc':'char';
+  if(type==='feed'){
+    const row={captionZh:String(data.captionZh??data.caption??data.captionOriginal??''),sourceLanguage:data.sourceLanguage||'',mediaItems:Array.isArray(data.mediaItems)?data.mediaItems:[{mediaDescription:data.mediaDescription||'生活随手记录',mediaUrl:data.mediaUrl||''}],location:data.location||'',tags:data.tags||[],metrics:data.metrics||{},initialComments:Array.isArray(data.initialComments)?data.initialComments:[]};
+    const post=makeGeneratedFeedPost(row,actorId,kind,0);post.followed=true;posts.unshift(post);commentsByPost[post.id]=[];applyGeneratedPublicCommentBatch({surface:'feed',contentId:post.id,ownerId:actorId,comments:row.initialComments.slice(0,5)});recordGeneratedFeedPublish(actorId,post);renderFeed();queueMicrotask(()=>void ensurePublicCommentFloor('feed',post.id,5).catch(()=>{}));
+    return makeDMContextCard('post',{postId:post.id,author:post.author,caption:ensureHomeFeedCaptionModel(post).chinese,mediaUrl:post.mediaUrl||'',mediaDescription:post.mediaDescription||post.mediaText||'',mediaClass:post.mediaClass||'m1',senderId:actorId,source:'linked',contentType:'feed',sourceLanguage:post.sourceLanguage||'',location:post.location||'',tags:post.tags||[],metrics:{likes:post.likes||0,comments:post.comments||0,reposts:post.reposts||0,shares:post.shares||0}});
+  }
+  const row={captionOriginal:String(data.captionOriginal??data.caption??''),captionTranslation:String(data.captionTranslation||''),sourceLanguage:String(data.sourceLanguage||''),videoDescription:String(data.videoDescription??data.mediaDescription??'随手短视频'),location:data.location||'',tags:data.tags||[],metrics:data.metrics||{},initialComments:Array.isArray(data.initialComments)?data.initialComments:[]};
+  const reel=makeGeneratedReelItem(row,actorId,kind,0);reelsV15State.items.unshift(reel);reelsV15State.comments[reel.id]=row.initialComments.slice(0,5).map(normalizeDMShareCommentRow);recordGeneratedReelPublish(actorId,reel);renderReelsV15();scheduleINSReelsPersistence();queueMicrotask(()=>void ensurePublicCommentFloor('reels',reel.id,5).catch(()=>{}));
+  return makeDMContextCard('reel',{postId:reel.id,author:reel.author,caption:reel.caption,captionTranslation:reel.captionTranslation||'',mediaUrl:'',mediaDescription:reel.videoDescription,mediaClass:'m1',senderId:actorId,source:'linked',contentType:'reel',sourceLanguage:reel.sourceLanguage||'',location:reel.location||'',tags:reel.tags||[],metrics:{likes:reel.likes||0,comments:reel.comments||0,reposts:reel.reposts||0,shares:reel.shares||0}});
+}
+function createActorDMOnlyShare(actorId,type,data={}){
+  const author=String(data.author||data.handle||data.actor?.handle||'shared.today').replace(/^@/,'');
+  const caption=String(data.captionOriginal??data.captionZh??data.caption??'');
+  const description=String(type==='reel'?(data.videoDescription??data.mediaDescription??'随手短视频'):(data.mediaDescription??data.mediaItems?.[0]?.mediaDescription??'生活随手记录'));
+  return makeDMContextCard(type==='reel'?'reel':'post',{postId:`dm_only_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,author,displayName:String(data.displayName||data.actor?.displayName||author),caption,captionTranslation:String(data.captionTranslation||''),mediaUrl:type==='feed'?String(data.mediaUrl||data.mediaItems?.[0]?.mediaUrl||''):'',mediaDescription:description,mediaClass:'m1',senderId:actorId,source:'dm_only',contentType:type,sourceLanguage:String(data.sourceLanguage||''),location:String(data.location||''),tags:Array.isArray(data.tags)?data.tags:[],metrics:data.metrics||{},comments:(Array.isArray(data.initialComments)?data.initialComments:[]).slice(0,5).map(normalizeDMShareCommentRow)});
+}
+function applyActorDMShareDecision(actorId,share,userRequested){
+  if(!share||typeof share!=='object')return false;
+  const decision=String(share.decision||share.action||'none').toLowerCase();
+  const id=normalizeSocialActorId(actorId);const state=dmShareIntentState[id]||{pending:0};
+  if(decision==='defer'||decision==='refuse'){state.pending=Math.min(3,(Number(state.pending)||0)+1);dmShareIntentState[id]=state;persistDMShareIntentState();return false;}
+  if(decision!=='share')return false;
+  const relevance=Math.max(0,Math.min(1,Number(share.relevance)||0.55));
+  if(!userRequested){const chance=Math.min(.72,.10+relevance*.34+(Number(state.pending)||0)*.16);if(Math.random()>chance)return false;}
+  const rawType=String(share.contentType||share.type||'').toLowerCase();
+  if(rawType!=='feed'&&rawType!=='reel')return false;
+  const type=rawType;
+  const source=String(share.source||'linked').toLowerCase();let card=null;
+  if(source==='linked'){
+    const contentId=String(share.contentId||'');const candidate=getDMShareCandidates(id,30).find(row=>String(row.contentId)===contentId&&row.contentType===type);if(!candidate)return false;
+    const content=type==='feed'?resolveDMShareCardContent({kind:'post',contentType:'feed',postId:contentId,author:candidate.author,caption:candidate.caption,source:'linked'}):resolveDMShareCardContent({kind:'reel',contentType:'reel',postId:contentId,author:candidate.author,caption:candidate.caption,source:'linked'});if(!content)return false;recordActorSawSharedLinkedContent(id,content);
+    card=makeDMContextCard(type==='reel'?'reel':'post',{postId:content.id,author:content.author,caption:content.caption,captionTranslation:content.captionTranslation||'',mediaUrl:content.mediaUrl||'',mediaDescription:content.mediaDescription||'',mediaClass:'m1',senderId:id,source:'linked',contentType:type,sourceLanguage:content.sourceLanguage||'',location:content.location||'',tags:content.tags||[],metrics:content.metrics||{}});
+  }else if(source==='own_publish')card=createActorPublishedDMShare(id,type,share.content||share);
+  else card=createActorDMOnlyShare(id,type,share.content||share);
+  if(!card)return false;if(!dmSharedCards[currentDMChat])dmSharedCards[currentDMChat]=[];dmSharedCards[currentDMChat].push(card);state.pending=0;dmShareIntentState[id]=state;persistDMShareIntentState();scheduleINSDMHistoryPersistence();updateDMListPreview(currentDMChat,`分享了一条 ${type==='reel'?'Reel':'IG 动态'}`);renderDMChatStream(currentDMChat);return true;
+}
+
+document.getElementById('dmChatMessages')?.addEventListener('click',event=>{const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;openDMShareCardDetail(card.dataset.dmShareCard);});
+document.getElementById('dmChatMessages')?.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;const card=event.target.closest?.('[data-dm-share-card]');if(!card)return;event.preventDefault();openDMShareCardDetail(card.dataset.dmShareCard);});
+
 async function dmSummonAI(){
   if(!currentDMChat||dmAIReplyInFlight)return;
   const typing=document.getElementById('dmTyping');
@@ -2621,11 +2802,19 @@ async function dmSummonAI(){
   try{
     const actorId=normalizeSocialActorId(currentDMChat);
     const recent=(dmBaseMessages[currentDMChat]||[]).slice(-18).map(row=>({id:row._uiId||'',from:row.from,text:row.text,translation:row.translation||'',createdAt:Number(row.createdAt)||0}));
-    const result=await callNiniINSAI(INS_AI_TASKS.DM_REPLY,{actorIds:actorId?[actorId]:[],ownerId:actorId,surface:'dm',content:{recentMessages:recent,sharedCards:(dmSharedCards[currentDMChat]||[]).slice(-4),socialContext:typeof getDMModelContext==='function'?getDMModelContext(actorId,8):[]}});
+    const lastUserText=[...recent].reverse().find(row=>row.from==='me')?.text||'';
+    const userRequestedShare=detectDMExplicitShareRequest(lastUserText);
+    const shareState=dmShareIntentState[actorId]||{pending:0};
+    const shareCandidates=getDMShareCandidates(actorId,12);
+    const result=await callNiniINSAI(INS_AI_TASKS.DM_REPLY,{actorIds:actorId?[actorId]:[],ownerId:actorId,surface:'dm',content:{recentMessages:recent,sharedCards:(dmSharedCards[currentDMChat]||[]).slice(-4),socialContext:typeof getDMModelContext==='function'?getDMModelContext(actorId,8):[],dmShare:{userRequestedShare,pendingInterest:Number(shareState.pending)||0,candidates:shareCandidates,policy:'You may occasionally share one Feed/Reel when it fits the conversation and your personality. Never share Story. linked must use one candidate contentId. dm_only creates a card that exists only in this DM. own_publish means you personally publish it first, so it will also appear on your profile and the real Feed/Reels. If User explicitly asks, you still may comply, defer, tease, or refuse according to personality; use decision=defer when you do not share now but may be more likely later. Unsolicited shares should be rare and context-relevant.'}}});
     if(!result.ok)throw new Error(result.reason||'AI 回复失败');
     const rows=Array.isArray(result.data?.messages)?result.data.messages:(result.data?.reply?[result.data.reply]:[]);
-    if(!rows.length)throw new Error('AI 没有返回 messages');
+    const share=result.data?.share||rows.find(row=>row&&row.share)?.share||null;
+    if(!rows.length&&!share)throw new Error('AI 没有返回 messages');
     rows.slice(0,4).forEach(row=>{const text=String(row.textOriginal??row.text??'').trim();if(text)addDMMessage(currentDMChat,'them',text,String(row.textTranslation??row.translation??'').trim());});
+    const pendingBefore=Number((dmShareIntentState[actorId]||{}).pending)||0;
+    const didShare=applyActorDMShareDecision(actorId,share,userRequestedShare);
+    if(userRequestedShare&&!didShare&&(Number((dmShareIntentState[actorId]||{}).pending)||0)===pendingBefore){const state=dmShareIntentState[actorId]||{pending:0};state.pending=Math.min(3,(Number(state.pending)||0)+1);dmShareIntentState[actorId]=state;persistDMShareIntentState();}
   }catch(error){alert('INS 私信 AI 调用失败：'+(error?.message||error));}
   finally{typing?.classList.remove('show');if(plane){plane.disabled=false;plane.removeAttribute('aria-busy');}dmAIReplyInFlight=false;}
 }
@@ -3114,7 +3303,7 @@ const INS_SURFACE_PROMPTS = Object.freeze({
   reels_generate:'Reels：更偏视觉和短视频片段，可以有城市、旅行、兴趣、日常、搞笑等内容；视频描述固定中文，文案跟随账号自然语言，地点和 tag 固定英文；评论语言独立于正文，不得整批跟随正文语种。',
   public_comment_batch:'公开评论：一批固定生成 5 条实际评论。评论应短、杂、关系、态度和社交动机不同；标准 5 条至少 2 种语言，并至少 1 条与正文主语言不同。评论者语言独立抽样，不得整批复制发帖人的语言。允许自己的经历、评价细节、不同意见、轻吐槽、低比例负面、广告厌烦、合作留言、信息询问、emoji 或不玩梗。提问可以有但不能成为默认；不要五个人都夸人、都问地点/链接、都长篇、都热情。',
   direct_comment_reply:'直接评论回复：只针对当前 thread 与目标人物自然回复，尊重关系和已有上下文；不要把一次回复写成总结全文。',
-  dm_reply:'DM：承接已有上下文与关系，可拆成多条短消息、改口、停顿、省略；可以只回应一个点、说自己的事或自然结束，不要为了续聊每条都强行提问。不要像客服，也不要突然复述整段人设/记忆。',
+  dm_reply:'DM：承接已有上下文与关系，可拆成多条短消息、改口、停顿、省略；可以只回应一个点、说自己的事或自然结束，不要为了续聊每条都强行提问。不要像客服，也不要突然复述整段人设/记忆。可以低概率、只在话题自然相关时分享一条真实 Feed/Reel；绝不分享 Story。User 主动要求分享也不是强制命令，要按人物性格决定立即分享、暂缓/逗一下或拒绝。linked 只能从提供的候选 contentId 选；dm_only 只存在 DM；own_publish 表示角色本人先真实发布再分享。',
   stranger_dm_refresh:'陌生消息：必须使用统一陌生账号身份 / ID / 语言规则。来源可包括普通个人、旅行者、摄影师、品牌/商务、娱乐公司/活动方、店铺或其他公开账号；也允许极低概率群发营销、边界感差或可疑垃圾信息。handle、displayName、region、language 必须自洽。可以有真实合作、约拍、面试/活动、旅行咨询、美食复刻求助、普通交友或信息询问；不要人人都夸 User、都从“看了主页很喜欢你的风格”开场、或都想立刻认识。可疑垃圾内容不要提供具体链接、付款、验证码或违规操作细节。',
   guestbook_refresh:'主页留言：陌生访客同样必须使用统一陌生账号身份 / ID / 语言规则。可以有粉丝、普通访客、熟人、质疑者/黑粉、商务合作或偶尔的奇怪留言，也可以对已有留言做一句公开回应；不要整批都应援或整批都负面。像主页访客留下的短留言，不要写成连续私聊；一批角色语气、长度、语言、态度和熟悉度应有差异。',
   reaction_settlement:'Reaction：根据人物关系、内容与情绪选择最自然的 reaction；允许不 reaction，不要为了填字段强行表态。',
@@ -12476,7 +12665,7 @@ startINSAutoPublishTimer();
       direct_comment_reply:
         '返回 {reply:{actorId,author,textOriginal,textTranslation,sourceLanguage,replyToActorId}}。',
       dm_reply:
-        '返回 {messages:[{textOriginal,textTranslation,sourceLanguage}]}，通常 1-4 条短消息。',
+        '返回 {messages:[{textOriginal,textTranslation,sourceLanguage}],share?:{decision:"share|defer|none",source:"linked|dm_only|own_publish",contentType:"feed|reel",contentId?:"候选ID",relevance?:0-1,content?:{author,displayName,caption,captionOriginal,captionZh,captionTranslation,sourceLanguage,mediaDescription,mediaUrl,videoDescription,location,tags,metrics,initialComments}}}。通常 1-4 条短消息。绝不返回 Story 分享。linked 必须使用 dmShare.candidates 中真实 contentId；dm_only 不进入主页/Feed/Reels；own_publish 表示当前角色本人真实发布后再分享。User 主动请求时仍根据人物性格决定是否立即执行；若暂时不分享可 decision=defer。',
       stranger_dm_refresh:
         '返回 {requests:[{handle,displayName,initial,language,region,source,textOriginal,textTranslation,sourceLanguage}]}，数量遵循 batchSize。每个陌生请求都必须按当前 world/network-culture 规则生成自洽的 handle + displayName + region + language/sourceLanguage；账号命名遵循其地区真实网络习惯，语言由该陌生人身份决定。全球来源、合理发现路径、正常陌生距离。',
       guestbook_refresh:
@@ -13310,6 +13499,7 @@ startINSAutoPublishTimer();
       const style = document.createElement('style');
       style.id = 'nini-ins-v5111-style';
       style.textContent = buildNativeScopedCSS(DIRECT_STYLE_TEXT);
+      style.textContent += buildNativeScopedCSS(DM_SHARE_V120_STYLE);
       style.textContent += buildNativeScopedCSS(`
 .feed-original-toggle{
   display:block;
