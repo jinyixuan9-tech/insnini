@@ -1,7 +1,7 @@
 // ============================================================
 // 插件：INS
 // 本版继承已修好的底栏误触 / 点击穿透处理，不再改动该逻辑。
-// 版本：1.2.20（User主页尺寸入口调整）
+// 版本：1.2.21（Roche 官方记忆总预算优化）
 // 结构：Roche plugin.js + manifest.json（适合 GitHub Gist 部署）
 // ============================================================
 (function() {
@@ -12,7 +12,7 @@
   // which leaves the old Home renderer alive even after the file is replaced.
   const PLUGIN_ID = 'nini-ins-roche-v1079';
   const APP_ID = 'nini-ins-home-v1079';
-  const VERSION = '1.2.20';
+  const VERSION = '1.2.21';
   const ICON_URL = 'https://imgbed.heliar.top/i/x9grO6G8Z9llF1CC_free-instagram-icon-SnNvLphykLIU.webp';
 
   const DM_SHARE_V120_STYLE = `
@@ -13426,22 +13426,66 @@ startINSAutoPublishTimer();
   async function callRocheAIWithRetry(roche,options){let last=null;for(let i=0;i<3;i++){try{return normalizeTextResponse(await roche.ai.chat(options));}catch(e){last=e;if(!isTransientModelError(e)||i===2)break;await sleep(700*(i+1));}}if(isTransientModelError(last))throw new Error('当前 Roche 默认模型暂时不可用，INS 已自动重试 2 次。请稍后再试，或切换可用的副 API。原始错误：'+String(last?.message||last||'unknown'));throw last||new Error('Roche AI 调用失败');}
 
 
+  /* ===== v1.2.21 Roche-style request budgeting =====
+     Roche keeps mounted memories intact. INS only budgets how much of that context
+     enters one AI request, so multiple actors no longer each claim a full 10k block. */
+  const INS_PUBLIC_AI_PROMPT_CHAR_BUDGET=60000;
+  const INS_PUBLIC_AI_MEMORY_CHAR_BUDGET=20000;
+  const INS_PUBLIC_AI_ACTOR_TEXT_CHAR_BUDGET=18800;
+  const INS_PUBLIC_AI_CONTEXT_RESERVE_CHARS=2400;
+
   function compactFeedMiddle(value,max=8000){
     const text=String(value||'');
-    if(text.length<=max)return text;
-    const head=Math.ceil(max*0.62);
-    const tail=max-head;
-    return text.slice(0,head)+'\n...[middle omitted for Feed request]...\n'+text.slice(-tail);
+    const safeMax=Math.max(0,Number(max)||0);
+    if(!safeMax)return '';
+    if(text.length<=safeMax)return text;
+    const head=Math.ceil(safeMax*0.62);
+    const tail=safeMax-head;
+    return text.slice(0,head)+'\n...[middle omitted for INS request]...\n'+text.slice(-tail);
   }
 
   function compactFeedTail(value,max=10000){
     const text=String(value||'');
-    if(text.length<=max)return text;
-    return '...[older mounted context omitted for Feed request]...\n'+text.slice(-max);
+    const safeMax=Math.max(0,Number(max)||0);
+    if(!safeMax)return '';
+    if(text.length<=safeMax)return text;
+    return '...[older mounted context omitted for INS request]...\n'+text.slice(-safeMax);
   }
 
-  function buildLeanFeedActorContext(actorContext){
-    return (actorContext||[]).map(row=>{
+  function resolveINSPublicContextBudgets(actorContext,fixedChars=0){
+    const actorCount=Math.max(1,(actorContext||[]).length);
+    const maxCombined=INS_PUBLIC_AI_MEMORY_CHAR_BUDGET+INS_PUBLIC_AI_ACTOR_TEXT_CHAR_BUDGET;
+    const available=Math.max(
+      0,
+      INS_PUBLIC_AI_PROMPT_CHAR_BUDGET-Math.max(0,Number(fixedChars)||0)-INS_PUBLIC_AI_CONTEXT_RESERVE_CHARS
+    );
+    const scale=maxCombined>0?Math.min(1,available/maxCombined):1;
+    const memoryTotal=Math.floor(INS_PUBLIC_AI_MEMORY_CHAR_BUDGET*scale);
+    const actorTextTotal=Math.floor(INS_PUBLIC_AI_ACTOR_TEXT_CHAR_BUDGET*scale);
+    return {
+      actorCount,
+      promptTotal:INS_PUBLIC_AI_PROMPT_CHAR_BUDGET,
+      memoryTotal,
+      actorTextTotal,
+      memoryPerActor:Math.min(10000,Math.floor(memoryTotal/actorCount)),
+      actorTextPerActor:Math.min(9400,Math.floor(actorTextTotal/actorCount))
+    };
+  }
+
+  function buildLeanFeedActorContext(actorContext,budgets={}){
+    const rows=Array.isArray(actorContext)?actorContext:[];
+    const actorCount=Math.max(1,rows.length);
+    const memoryPerActor=Number.isFinite(Number(budgets.memoryPerActor))
+      ? Math.max(0,Number(budgets.memoryPerActor))
+      : Math.min(10000,Math.floor(INS_PUBLIC_AI_MEMORY_CHAR_BUDGET/actorCount));
+    const actorTextPerActor=Number.isFinite(Number(budgets.actorTextPerActor))
+      ? Math.max(0,Number(budgets.actorTextPerActor))
+      : Math.min(9400,Math.floor(INS_PUBLIC_AI_ACTOR_TEXT_CHAR_BUDGET/actorCount));
+
+    const bioLimit=Math.min(1400,Math.floor(actorTextPerActor*0.18));
+    const personaLimit=Math.min(8000,Math.max(0,actorTextPerActor-bioLimit));
+
+    return rows.map(row=>{
       const c=row?.rocheCharacter||null;
       return {
         actorId:row?.actorId||'',
@@ -13449,10 +13493,10 @@ startINSAutoPublishTimer();
           id:c.id||'',
           name:String(c.name||'').slice(0,120),
           handle:String(c.handle||'').slice(0,120),
-          bio:compactFeedMiddle(c.bio||'',1400),
-          persona:compactFeedMiddle(c.persona||'',8000)
+          bio:compactFeedMiddle(c.bio||'',bioLimit),
+          persona:compactFeedMiddle(c.persona||'',personaLimit)
         }:null,
-        rocheMemoryContext:compactFeedTail(row?.rocheMemoryContext||'',10000)
+        rocheMemoryContext:compactFeedTail(row?.rocheMemoryContext||'',memoryPerActor)
       };
     });
   }
@@ -13483,7 +13527,8 @@ startINSAutoPublishTimer();
       `Persona：${diag.timings?.personaMs||0}ms`,
       `Prompt：${diag.promptChars||0} 字符`,
       ...(diag.breakdown?[
-        `构成：system ${diag.breakdown.systemChars||0} / actor ${diag.breakdown.actorChars||0} / memory ${diag.breakdown.memoryChars||0} / relation ${diag.breakdown.relationshipChars||0} / user ${diag.breakdown.userPersonaChars||0}`
+        `构成：system ${diag.breakdown.systemChars||0} / actor ${diag.breakdown.actorChars||0} / memory ${diag.breakdown.memoryChars||0} / relation ${diag.breakdown.relationshipChars||0} / user ${diag.breakdown.userPersonaChars||0}`,
+        `预算：prompt ${diag.promptChars||0}/${diag.breakdown.promptBudgetChars||0} / actor ${diag.breakdown.actorChars||0}/${diag.breakdown.actorBudgetChars||0} / memory ${diag.breakdown.memoryChars||0}/${diag.breakdown.memoryBudgetChars||0}`
       ]:[]),
       `AI 请求：${diag.timings?.modelMs||0}ms`,
       `解析：${diag.timings?.parseMs||0}ms`,
@@ -13525,7 +13570,6 @@ startINSAutoPublishTimer();
 
           let payload;
           if(isLeanPublicContent){
-            const leanActorContext=buildLeanFeedActorContext(actorContext);
             const leanRelationships=buildLeanFeedRelationships(request.relationshipCandidates||[]);
             const recentKnowledge=(Array.isArray(request.actorRecentKnowledge)?request.actorRecentKnowledge:[])
               .slice(-8)
@@ -13540,14 +13584,13 @@ startINSAutoPublishTimer();
                   .map(v=>String(v||'').slice(0,220))
               }));
             const isStrangerBatch=isHomeStrangers||!!request?.extra?.generateStrangers;
-
-            payload={
+            const payloadBase={
               task:request.task,
               ownerId:request.ownerId,
               actorIds:request.actorIds,
               preference:String(request.prompt||'').slice(0,8000),
               content:(isLeanComment||isLeanGuestbook)?(request.content||null):null,
-              actorContext:leanActorContext,
+              actorContext:[],
               directRelationships:isStrangerBatch?[]:leanRelationships,
               actorRelationshipContexts:isLeanReels?perActorRelationships:[],
               recentINSKnowledge:isStrangerBatch?[]:recentKnowledge,
@@ -13574,11 +13617,23 @@ startINSAutoPublishTimer();
               }
             };
 
+            // Fixed prompt/context gets its space first. Mounted memory + persona then share
+            // the remaining request budget across all participating actors.
+            const fixedChars=system.length+JSON.stringify(payloadBase).length+600;
+            const publicBudgets=resolveINSPublicContextBudgets(actorContext,fixedChars);
+            const leanActorContext=buildLeanFeedActorContext(actorContext,publicBudgets);
+            payload={...payloadBase,actorContext:leanActorContext};
+
             const actorChars=leanActorContext.reduce((n,row)=>{
               const c=row.rocheCharacter||{};
               return n+String(c.bio||'').length+String(c.persona||'').length;
             },0);
             const memoryChars=leanActorContext.reduce((n,row)=>n+String(row.rocheMemoryContext||'').length,0);
+            const actorInputChars=(actorContext||[]).reduce((n,row)=>{
+              const c=row?.rocheCharacter||{};
+              return n+String(c.bio||'').length+String(c.persona||'').length;
+            },0);
+            const memoryInputChars=(actorContext||[]).reduce((n,row)=>n+String(row?.rocheMemoryContext||'').length,0);
             const relationshipChars=
               JSON.stringify(isStrangerBatch?[]:leanRelationships).length+
               JSON.stringify(isLeanReels?perActorRelationships:recentKnowledge).length;
@@ -13587,8 +13642,15 @@ startINSAutoPublishTimer();
               systemChars:system.length,
               actorChars,
               memoryChars,
+              actorInputChars,
+              memoryInputChars,
               relationshipChars,
-              userPersonaChars
+              userPersonaChars,
+              promptBudgetChars:publicBudgets.promptTotal,
+              actorBudgetChars:publicBudgets.actorTextTotal,
+              memoryBudgetChars:publicBudgets.memoryTotal,
+              actorTextPerActor:publicBudgets.actorTextPerActor,
+              memoryPerActor:publicBudgets.memoryPerActor
             };
           }else{
             payload = {
